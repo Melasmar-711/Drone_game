@@ -6,9 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <sys/select.h>
+
 
 #define DRONE_MASS 1.0
-#define FRAME_RATE 5
+#define FRAME_RATE 30
 #define TIME_STEP (1.0 / FRAME_RATE)
 #define MAX_X 50
 #define MAX_Y 30
@@ -49,6 +51,12 @@ int create_and_open_fifo(const char *fifo_name, int flags) {
     return fd;
 }
 
+
+int is_closer_to_next(float num) {
+    float fractional_part = num - floor(num); // Extract the fractional part
+    return fractional_part >= 0.94;           // Check if closer to next number
+}
+
 Vector compute_repulsion_forces(int input_x_force,int input_y_force,float drone_x, float drone_y, int num_obstacles, int obstacles[][2]) {
     Vector rep_force = {0, 0};
 
@@ -58,10 +66,20 @@ Vector compute_repulsion_forces(int input_x_force,int input_y_force,float drone_
         double distance = sqrt(dx * dx + dy * dy);
 
         if (distance > 0 && distance < 4.0) {
-            if (input_x_force>1 || input_y_force>1){
-            double repulsion = input_x_force*4 / (distance * distance);
-            rep_force.x += repulsion * dx / distance;
-            rep_force.y += repulsion * dy / distance;
+            if (input_x_force>=1 || input_y_force>=1){
+            double repulsion_x = 4*input_x_force / (distance * distance);
+            double repulsion_y = 4*input_y_force / (distance * distance);
+
+            rep_force.x += repulsion_x * dx / distance;
+            rep_force.y += repulsion_y * dy / distance;
+
+            }
+            else if (input_x_force<=-1 || input_y_force<=-1){
+            double repulsion_x = -4*input_x_force / (distance * distance);
+            double repulsion_y = -4*input_y_force / (distance * distance);
+
+            rep_force.x += repulsion_x * dx / distance;
+            rep_force.y += repulsion_y * dy / distance;
 
             }
             else
@@ -86,18 +104,56 @@ int main() {
     int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_WRONLY);
     int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_RDONLY);
 
+
+
     ServerState state = {0};
     Vector velocity = {0, 0};
     Vector acceleration = {0, 0};
 
+    fd_set read_fds;
+    struct timeval timeout = {0, 0};
+
+    
+    ServerState prev_state = {
+        .drone_x = 10,
+        .drone_y = 7,
+        .input_x_force = 0,
+        .input_y_force = 0,
+        .resultant_force_x = 0,
+        .resultant_force_y = 0,
+        .velocity_x = 0,
+        .velocity_y = 0,
+        .num_obstacles = 3,
+        .obstacles = {{5, 5}, {20, 7}, {30, 15}},
+        .num_targets = 2,
+        .targets = {{40, 3}, {25, 18}}
+    };
+
+
     while (1) {
 
+        FD_ZERO(&read_fds);
+        FD_SET(fd_server_to_Dynamics, &read_fds);
+
+        
+        
+        int activity = select(fd_server_to_Dynamics + 1, &read_fds, NULL, NULL, &timeout);
+
+        if(activity>0){
         ssize_t bytes = read(fd_server_to_Dynamics, &state, sizeof(ServerState));
-        if (bytes <= 0) continue;
+        }
+        
+        else
+        {
+            
+            state=prev_state;
+        }
 
         Vector repulsion = compute_repulsion_forces(state.input_x_force,state.input_y_force,state.drone_x, state.drone_y, state.num_obstacles, state.obstacles);
         Vector viscosity = compute_viscosity_force(state.velocity_x, state.velocity_y);
 
+
+        printf("force input %d %d \n",state.input_x_force,state.input_y_force);
         printf("repulsion %f %f\n",repulsion.x,repulsion.y);
         printf("vis %f %f\n",viscosity.x,viscosity.y);
 
@@ -112,7 +168,7 @@ int main() {
         state.drone_x =state.drone_x + velocity.x * TIME_STEP;
         state.drone_y =state.drone_y + velocity.y * TIME_STEP;
 
-        //printf("pos %f %f\n",state.drone_x,state.drone_y);
+        printf("pos %f %f\n",state.drone_x,state.drone_y);
 
 
         state.velocity_x = velocity.x;
@@ -136,14 +192,17 @@ int main() {
             state.velocity_x =0;
 
         }
-        if (state.drone_y >= MAX_Y-1){ 
+        if (state.drone_y >= MAX_Y){ 
             state.drone_y = MAX_Y-2;
             state.velocity_y=0;
             state.velocity_x =0;
             
         }
 
+        //if (is_closer_to_next(state.drone_x) ||is_closer_to_next(state.drone_y) ){
         write(fd_Dynamics_to_server, &state, sizeof(ServerState));
+        prev_state=state;
+        //}
         usleep(1000000 / FRAME_RATE);
     }
 
