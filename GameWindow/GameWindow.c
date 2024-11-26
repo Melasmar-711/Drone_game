@@ -5,11 +5,13 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/select.h>
+
 
 #define MAX_OBSTACLES 10
 #define MAX_TARGETS 10
 #define MAX_X 50
-#define MAX_Y 30
+#define MAX_Y 20
 
 typedef struct {
     float drone_x;
@@ -41,7 +43,7 @@ static inline int create_and_open_fifo(const char *fifo_name, int flags) {
 
 
 
-#define DELAY 10000 // Delay in microseconds (controls frame rate)
+#define DELAY 1000 // Delay in microseconds (controls frame rate)
 
 // Function prototypes
 void init_ncurses();
@@ -49,6 +51,12 @@ void draw_borders();
 void draw_simulation(ServerState *prev_state, ServerState *current_state);
 
 int main() {
+    
+    
+    fd_set read_fds;
+    struct timeval timeout = {0, 0};
+
+
     int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow", O_RDONLY | O_NONBLOCK);
     if (fd_server_to_GameWindow < 0) {
         perror("Failed to open pipe");
@@ -57,20 +65,52 @@ int main() {
 
 
 
-    ServerState state = {0};
+        // Server state
+    ServerState state = {
+        .drone_x = 10,
+        .drone_y = 7,
+        .input_x_force = 0,
+        .input_y_force = 0,
+        .resultant_force_x = 0,
+        .resultant_force_y = 0,
+        .velocity_x = 0,
+        .velocity_y = 0,
+        .num_obstacles = 3,
+        .obstacles = {{5, 5}, {20, 7}, {30, 15}},
+        .num_targets = 2,
+        .targets = {{40, 3}, {25, 18}}
+    };
+
+
     ServerState prev_state={0};
     init_ncurses();
     draw_borders();
+    draw_simulation(&prev_state,&state);
+
     refresh();
 
 
     while (1) {
-        ssize_t bytes_read = read(fd_server_to_GameWindow, &state, sizeof(ServerState));
-        if (bytes_read > 0) {
-            draw_simulation(&prev_state,&state);
-            refresh();
-            prev_state=state;
+
+
+        FD_ZERO(&read_fds);
+        FD_SET(fd_server_to_GameWindow, &read_fds);
+
+        int activity = select(fd_server_to_GameWindow + 1, &read_fds, NULL, NULL, &timeout);
+
+        if (activity>0){
+
+
+            ssize_t bytes_read = read(fd_server_to_GameWindow, &state, sizeof(ServerState));
         }
+
+        
+        draw_simulation(&prev_state,&state);
+        refresh();
+        prev_state=state;
+
+        
+        
         
         usleep(DELAY);
     }
