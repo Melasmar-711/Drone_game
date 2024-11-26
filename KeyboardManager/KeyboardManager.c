@@ -15,52 +15,50 @@ typedef struct {
 
 #define DELAY 50000 // Delay in microseconds (adjust frame rate)
 
-void init_ncurses();
-void process_input(KeyboardInput *input);
 
-int main() {
-    char *Keyboard_to_server = "/tmp/keyboardManager_to_server";
-    mkfifo(Keyboard_to_server, 0666);
+static inline int create_and_open_fifo(const char *fifo_name, int flags) {
 
-    printf("i am here");
-    fflush(stdout);
-
-    int fd_Keyboard_to_server = open(Keyboard_to_server, O_WRONLY);
-    if (fd_Keyboard_to_server < 0) {
-        perror("Failed to open pipe");
-        return 1;
+    mkfifo(fifo_name, 0666);
+    int fd = open(fifo_name, flags);
+    if (fd < 0) {
+        perror("Failed to open FIFO");
+        exit(1);
     }
 
-    KeyboardInput input = {0, 0, 0};        // Current state
-    KeyboardInput prev_input = {0, 0, 0};  // Previous state to track changes
+    return fd;
+}
 
+
+#define DELAY 50000 // Delay in microseconds
+
+void init_ncurses();
+void process_input(KeyboardInput *input);
+void draw_keyboard_layout(KeyboardInput *input);
+
+int main() {
+
+    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server", O_WRONLY);
+
+
+    KeyboardInput input = {0, 0, 0}, prev_input = {0, 0, 0};
     init_ncurses();
 
     while (!input.quit) {
         clear(); // Clear the screen
 
-        // Display current forces
-        mvprintw(5, 10, "Keyboard Manager");
-        mvprintw(7, 10, "Force X: %d", input.force_x);
-        mvprintw(8, 10, "Force Y: %d", input.force_y);
-        mvprintw(10, 10, "Press Arrow Keys to Change Force");
-        mvprintw(11, 10, "Press 'q' to Quit");
-
-        refresh();
+        draw_keyboard_layout(&input);
 
         // Process user input and update the structure
         process_input(&input);
 
-        // Check if forces have changed
-        if (input.force_x != prev_input.force_x || input.force_y != prev_input.force_y || input.quit != prev_input.quit) {
-            // Send the structure to the server
+        // Check if forces have changed or quit signal is sent
+        if (memcmp(&input, &prev_input, sizeof(KeyboardInput)) != 0) {
             write(fd_Keyboard_to_server, &input, sizeof(KeyboardInput));
-
-            // Update the previous state
             prev_input = input;
         }
 
-        usleep(DELAY);
+        refresh();
+        usleep(DELAY); // Control the frame rate
     }
 
     endwin();
@@ -69,52 +67,44 @@ int main() {
 }
 
 void init_ncurses() {
-    initscr();            // Initialize the screen
-    noecho();             // Don't echo user input
-    curs_set(FALSE);      // Hide the cursor
-    nodelay(stdscr, TRUE); // Non-blocking input
-    keypad(stdscr, TRUE);  // Enable arrow keys
+    initscr();
+    noecho();
+    curs_set(FALSE);
+    nodelay(stdscr, TRUE);
+    keypad(stdscr, TRUE);
 }
 
 void process_input(KeyboardInput *input) {
     int ch = getch(); // Get user input (non-blocking)
 
     switch (ch) {
-        case 'w':
-            input->force_y--; // Increase upward force
-            break;
-        case 'x':
-            input->force_y++; // Decrease downward force
-            break;
-        case 'a':
-            input->force_x--; // Decrease rightward force
-            break;
-        case 'd':
-            input->force_x++; // Increase rightward force
-            break;
-        case 's':
-            input->force_x=0; // Increase rightward force
-            input->force_y=0;
-            break;
-        case 'e':
-            input->force_x+=1;//0.70710678118; // Increase rightward force
-            input->force_y-=1;//0.70710678118; // Increase rightward force            
-            break;
-        case 'q':
-            input->force_x-=1;//0.70710678118; // Increase rightward force
-            input->force_y-=1;//0.70710678118; // Increase rightward force            
-            break;                    
-        case 'z':
-            input->force_x-=1;//0.70710678118; // Increase rightward force
-            input->force_y+=1;//0.70710678118; // Increase rightward force            
-            break;
-        case 'c':
-            input->force_x+=1;//0.70710678118; // Increase rightward force
-            input->force_y+=1;//0.70710678118; // Increase rightward force            
-            break;
-
-        default:
-            // No action for other keys
-            break;
+        case 'w': input->force_y--; break;
+        case 's': input->force_x = 0; input->force_y = 0; break;
+        case 'a': input->force_x--; break;
+        case 'd': input->force_x++; break;
+        case 'x': input->force_y++; break;
+        case 'q': input->force_x -= 1; input->force_y -= 1; break;
+        case 'e': input->force_x += 1; input->force_y -= 1; break;
+        case 'z': input->force_x -= 1; input->force_y += 1; break;
+        case 'c': input->force_x += 1; input->force_y += 1; break;
+        case 'o': input->quit = 1; break; // Quit
+        default: break;
     }
+}
+
+void draw_keyboard_layout(KeyboardInput *input) {
+    mvprintw(5, 10, "Keyboard Layout:");
+    mvprintw(7, 10, "  q | w | e  ");
+    mvprintw(8, 10, "  -----------  ");
+    mvprintw(9, 10, "  a | s | d  ");
+    mvprintw(10, 10, "  -----------  ");
+    mvprintw(11, 10, "  z | x | c  ");
+
+    mvprintw(13, 10, "Force X: %d", input->force_x);
+    mvprintw(14, 10, "Force Y: %d", input->force_y);
+
+    mvprintw(16, 10, "Controls:");
+    mvprintw(17, 10, "'w': Move Up, 'a': Move Left, 's': Stop, 'd': Move Right");
+    mvprintw(18, 10, "'q': Up-Left, 'e': Up-Right, 'z': Down-Left, 'c': Down-Right");
+    mvprintw(19, 10, "'o': Quit");
 }
