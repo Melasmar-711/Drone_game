@@ -75,7 +75,7 @@ void init_ncurses() {
 }
 
 void process_input(KeyboardInput *input) {
-    int ch = getch(); // Get user input (non-blocking)
+    int ch = getch(); 
 
     switch (ch) {
         case 'w': input->force_y--; break;
@@ -93,6 +93,7 @@ void process_input(KeyboardInput *input) {
 }
 
 void draw_keyboard_layout(KeyboardInput *input) {
+
     mvprintw(5, 10, "Keyboard Layout:");
     mvprintw(7, 10, "  q | w | e  ");
     mvprintw(8, 10, "  -----------  ");
@@ -107,4 +108,6 @@ void draw_keyboard_layout(KeyboardInput *input) {
     mvprintw(17, 10, "'w': Move Up, 'a': Move Left, 's': Stop, 'd': Move Right");
     mvprintw(18, 10, "'q': Up-Left, 'e': Up-Right, 'z': Down-Left, 'c': Down-Right");
     mvprintw(19, 10, "'o': Quit");
+
+
 }
