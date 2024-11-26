@@ -12,7 +12,7 @@
 #define MAX_TARGETS 10
 #define MAX_X 50
 #define MAX_Y 30
-#define FRAME_RATE 5 // 20 FPS = 50ms per frame
+#define FRAME_RATE 30
 
 typedef struct {
     float drone_x;
@@ -78,7 +78,7 @@ int main() {
     // Server state
     ServerState state = {
         .drone_x = 10,
-        .drone_y = 10,
+        .drone_y = 7,
         .input_x_force = 0,
         .input_y_force = 0,
         .resultant_force_x = 0,
@@ -97,10 +97,15 @@ int main() {
 
     struct timeval timeout = {0, 0};
     long last_frame_time = current_time_in_ms();
+    KeyboardInput prev_input={0};
+    KeyboardInput input={0};
 
     while (1) {
+
         long current_time = current_time_in_ms();
         if (current_time - last_frame_time < 1000 / FRAME_RATE) {
+            //printf("sleeping for sometime\n");
+            fflush(stdout);
             usleep(1000); // Sleep for 1ms if we're ahead of the frame rate
             continue;
         }
@@ -125,7 +130,7 @@ int main() {
                     if (state.drone_x >= MAX_X) state.drone_x = MAX_X - 1;
                     if (state.drone_y < 0) state.drone_y = 0;
                     if (state.drone_y >= MAX_Y) state.drone_y = MAX_Y - 1;
-                    //printf("Updated state received from DroneDynamics %f\n ",state.velocity_x);
+                    printf("Updated state received from DroneDynamics %f\n ",state.drone_x);
                 }
 
 
@@ -134,10 +139,9 @@ int main() {
 
             // Handle input from KeyboardManager
             if (FD_ISSET(fd_Keyboard_to_server, &read_fds)) {
-                KeyboardInput input;
-
+                
                 ssize_t bytes_read = read(fd_Keyboard_to_server, &input, sizeof(KeyboardInput));
-
+                
                 if (bytes_read == sizeof(KeyboardInput)) {
                     if (input.quit) {
                         printf("Quit signal received. Shutting down.\n");
@@ -146,15 +150,22 @@ int main() {
                     state.input_x_force = input.force_x;
                     state.input_y_force = input.force_y;
                     printf("Received from Keyboard: Force X = %d, Force Y = %d\n", input.force_x, input.force_y);
+                    
                 }
             }
 
         }
 
 
-        // Send updated state to DroneDynamics
-        write(fd_server_to_Dynamics, &state, sizeof(ServerState));
 
+        if (prev_input.force_x!= input.force_x || prev_input.force_y!= input.force_y){
+        // Send updated state to DroneDynamics
+        printf("i am sending to the dynamics now %d %d \n",state.input_x_force,state.input_y_force);
+
+        write(fd_server_to_Dynamics, &state, sizeof(ServerState));
+        prev_input=input;
+
+        }
         // Send updated state to GameWindow
         write(fd_server_to_GameWindow, &state, sizeof(ServerState));
     }
