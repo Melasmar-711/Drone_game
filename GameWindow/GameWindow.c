@@ -12,15 +12,36 @@
 #define MAX_Y 30
 
 typedef struct {
-    int drone_x;
-    int drone_y;
+    float drone_x;
+    float drone_y;
+    int input_x_force;
+    int input_y_force;
+    float resultant_force_x;
+    float resultant_force_y;
+    float velocity_x;
+    float velocity_y;
     int num_obstacles;
     int obstacles[MAX_OBSTACLES][2];
     int num_targets;
     int targets[MAX_TARGETS][2];
 } ServerState;
 
-#define DELAY 50000 // Delay in microseconds (controls frame rate)
+
+static inline int create_and_open_fifo(const char *fifo_name, int flags) {
+
+    mkfifo(fifo_name, 0666);
+    int fd = open(fifo_name, flags);
+    if (fd < 0) {
+        perror("Failed to open FIFO");
+        exit(1);
+    }
+
+    return fd;
+}
+
+
+
+#define DELAY 10000 // Delay in microseconds (controls frame rate)
 
 // Function prototypes
 void init_ncurses();
@@ -28,46 +49,34 @@ void draw_borders();
 void draw_simulation(ServerState *prev_state, ServerState *current_state);
 
 int main() {
-    char *server_to_GameWindow = "/tmp/server_to_GameWindow";
-    mkfifo(server_to_GameWindow, 0666);
-
-    // Open the pipe to receive data from the server
-    int fd_server_to_GameWindow = open(server_to_GameWindow, O_RDONLY | O_NONBLOCK);
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow", O_RDONLY | O_NONBLOCK);
     if (fd_server_to_GameWindow < 0) {
         perror("Failed to open pipe");
         return 1;
     }
 
-    ServerState state;        // Current simulation state
-    ServerState prev_state;   // Previous simulation state to track changes
-    memset(&state, 0, sizeof(ServerState));
-    memset(&prev_state, 0, sizeof(ServerState));
 
-    // Initialize ncurses
-    //init_ncurses();
-    //draw_borders(); // Draw static borders once
+
+    ServerState state = {0};
+    ServerState prev_state={0};
+    init_ncurses();
+    draw_borders();
+    refresh();
+
 
     while (1) {
-        // Read data from the server
         ssize_t bytes_read = read(fd_server_to_GameWindow, &state, sizeof(ServerState));
-
-        printf("i read from server now%d\n",state.drone_x);
-        fflush(stdout);
-
-        if (bytes_read == sizeof(ServerState)) {
-            // Only render changes when new data is received
-            
-            //draw_simulation(&prev_state, &state);
+        if (bytes_read > 0) {
+            draw_simulation(&prev_state,&state);
             refresh();
-            // Update the previous state
-            prev_state = state;
+            prev_state=state;
         }
-
-        usleep(DELAY); // Control frame rate
+        
+        usleep(DELAY);
     }
 
-    //endwin(); // End ncurses mode
-    close(fd_server_to_GameWindow); // Close the pipe
+    endwin();
+    close(fd_server_to_GameWindow);
     return 0;
 }
 
@@ -96,9 +105,10 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state) {
     // Handle the drone position
     if (prev_state->drone_x != current_state->drone_x || prev_state->drone_y != current_state->drone_y) {
         // Erase old drone position
-        mvprintw(prev_state->drone_y, prev_state->drone_x, " ");
+
+        mvprintw((int) prev_state->drone_y, (int)prev_state->drone_x, " ");
         // Draw new drone position
-        mvprintw(current_state->drone_y, current_state->drone_x, "D");
+        mvprintw((int)current_state->drone_y, (int)current_state->drone_x, "D");
     }
 
     // Handle obstacles
