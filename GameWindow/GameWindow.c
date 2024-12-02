@@ -162,6 +162,8 @@ void draw_borders() {
 
 
 
+
+
 void draw_simulation(ServerState *prev_state, ServerState *current_state,int *flags) {
     // Handle the drone position
     if (prev_state->drone_x != current_state->drone_x || prev_state->drone_y != current_state->drone_y) 
@@ -211,7 +213,7 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
     for (int i = 0; i < MAX_TARGETS; i++) 
     {
 
-        static prev_flags[MAX_TARGETS]={0};
+        static int prev_flags[MAX_TARGETS]={0};
         static int score=0;
 
         int dx = current_state->drone_x - current_state->targets[i][0];
