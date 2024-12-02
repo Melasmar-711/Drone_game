@@ -13,7 +13,7 @@ typedef struct {
     int quit;    // Flag to indicate if the user wants to quit
 } KeyboardInput;
 
-#define DELAY 50000 // Delay in microseconds (adjust frame rate)
+#define DELAY 5000 // Delay in microseconds (adjust frame rate)
 
 
 static inline int create_and_open_fifo(const char *fifo_name, int flags) {
@@ -29,11 +29,11 @@ static inline int create_and_open_fifo(const char *fifo_name, int flags) {
 }
 
 
-#define DELAY 50000 // Delay in microseconds
+#define DELAY 500000 // Delay in microseconds
 
 void init_ncurses();
 void process_input(KeyboardInput *input);
-void draw_keyboard_layout(KeyboardInput *input);
+void draw_keyboard_layout(KeyboardInput *input) ;
 
 int main() {
 
@@ -49,13 +49,16 @@ int main() {
         draw_keyboard_layout(&input);
 
         // Process user input and update the structure
+        
         process_input(&input);
 
         // Check if forces have changed or quit signal is sent
-        if (memcmp(&input, &prev_input, sizeof(KeyboardInput)) != 0) {
-            write(fd_Keyboard_to_server, &input, sizeof(KeyboardInput));
-            prev_input = input;
+        if (memcmp(&input, &prev_input, sizeof(KeyboardInput)) ) {
+        write(fd_Keyboard_to_server, &input, sizeof(KeyboardInput));
+        prev_input = input;
+        
         }
+        
 
         refresh();
         usleep(DELAY); // Control the frame rate
@@ -71,6 +74,7 @@ void init_ncurses() {
     noecho();
     curs_set(FALSE);
     nodelay(stdscr, TRUE);
+    timeout(100);
     keypad(stdscr, TRUE);
 }
 
@@ -78,16 +82,17 @@ void process_input(KeyboardInput *input) {
     int ch = getch(); 
 
     switch (ch) {
-        case 'w': input->force_y--; break;
+        case 'w': input->force_y=-1; break;
         case 's': input->force_x = 0; input->force_y = 0; break;
-        case 'a': input->force_x--; break;
-        case 'd': input->force_x++; break;
-        case 'x': input->force_y++; break;
-        case 'q': input->force_x -= 1; input->force_y -= 1; break;
-        case 'e': input->force_x += 1; input->force_y -= 1; break;
-        case 'z': input->force_x -= 1; input->force_y += 1; break;
-        case 'c': input->force_x += 1; input->force_y += 1; break;
+        case 'a': input->force_x=-1; break;
+        case 'd': input->force_x=1; break;
+        case 'x': input->force_y=1; break;
+        case 'q': input->force_x = -1; input->force_y = -1; break;
+        case 'e': input->force_x = 1; input->force_y =-1; break;
+        case 'z': input->force_x = -1; input->force_y = 1; break;
+        case 'c': input->force_x = 1; input->force_y = 1; break;
         case 'o': input->quit = 1; break; // Quit
+        case ERR :input->force_x = 0; input->force_y = 0; break;
         default: break;
     }
 }
