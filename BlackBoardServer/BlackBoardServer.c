@@ -153,9 +153,13 @@ int main() {
                         printf("Quit signal received. Shutting down.\n");
                         break;
                     }
+
+                if (memcmp(&input, &prev_input, sizeof(KeyboardInput)) ) {
                     state.input_x_force = input.force_x;
                     state.input_y_force = input.force_y;
                     //printf("Received from Keyboard: Force X = %d, Force Y = %d\n", input.force_x, input.force_y);
+
+                        }
                     
                 }
             }
