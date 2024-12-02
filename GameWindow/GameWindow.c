@@ -211,23 +211,24 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
     for (int i = 0; i < MAX_TARGETS; i++) 
     {
 
-
+        static prev_flags[MAX_TARGETS]={0};
         static int score=0;
 
         int dx = current_state->drone_x - current_state->targets[i][0];
         int dy = current_state->drone_y - current_state->targets[i][1];
         double distance = sqrt(dx * dx + dy * dy);
 
-        if (distance<0.2 && flags[i]!=1 )
+        if (distance<0.2 && prev_flags[i]!=1 )
         {
             flags[i]=1;  // this means it's taken now
+            prev_flags[i]=1;
             score++;
 
         }
 
         attron(COLOR_PAIR(2));
 
-        if (i >= prev_state->num_targets && i < current_state->num_targets   && flags[i]==0) 
+        if (i >= prev_state->num_targets && i < current_state->num_targets   && flags[i]==0 ) 
         {
             // New target added
             mvprintw(current_state->targets[i][1], current_state->targets[i][0], "T");
@@ -237,7 +238,7 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
         {
             // Target removed
             mvprintw(prev_state->targets[i][1], prev_state->targets[i][0], " ");
-
+            flags[i]=0;
         }
 
         else if (i < prev_state->num_targets && i < current_state->num_targets) 
