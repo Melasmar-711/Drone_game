@@ -181,25 +181,25 @@ int main() {
         state.velocity_y = velocity.y;
         
         if (state.drone_x <= 1){ 
-            state.drone_x = 2;
+            state.drone_x = 1;
             state.velocity_x =0;
             state.velocity_y=0;
         
         }
         if (state.drone_x >= MAX_X-1){ 
-            state.drone_x = MAX_X-2;
+            state.drone_x = MAX_X-1;
             state.velocity_x =0;
             state.velocity_y=0;
 
         }
         if (state.drone_y <= 1) {
-            state.drone_y = 2;
+            state.drone_y = 1;
             state.velocity_y=0;
             state.velocity_x =0;
 
         }
         if (state.drone_y >= MAX_Y){ 
-            state.drone_y = MAX_Y-2;
+            state.drone_y = MAX_Y-1;
             state.velocity_y=0;
             state.velocity_x =0;
             
