@@ -53,11 +53,11 @@ int main() {
         process_input(&input);
 
         // Check if forces have changed or quit signal is sent
-        if (memcmp(&input, &prev_input, sizeof(KeyboardInput)) ) {
+        //if (memcmp(&input, &prev_input, sizeof(KeyboardInput)) ) {
         write(fd_Keyboard_to_server, &input, sizeof(KeyboardInput));
         prev_input = input;
         
-        }
+        //}
         
 
         refresh();
@@ -82,17 +82,17 @@ void process_input(KeyboardInput *input) {
     int ch = getch(); 
 
     switch (ch) {
-        case 'w': input->force_y=-1; break;
+        case 'w': input->force_y-=1; break;
         case 's': input->force_x = 0; input->force_y = 0; break;
-        case 'a': input->force_x=-1; break;
-        case 'd': input->force_x=1; break;
-        case 'x': input->force_y=1; break;
-        case 'q': input->force_x = -1; input->force_y = -1; break;
-        case 'e': input->force_x = 1; input->force_y =-1; break;
-        case 'z': input->force_x = -1; input->force_y = 1; break;
-        case 'c': input->force_x = 1; input->force_y = 1; break;
+        case 'a': input->force_x-=1; break;
+        case 'd': input->force_x+=1; break;
+        case 'x': input->force_y+=1; break;
+        case 'q': input->force_x -= 1; input->force_y-=1; break;
+        case 'e': input->force_x += 1; input->force_y -=1; break;
+        case 'z': input->force_x-=1; input->force_y += 1; break;
+        case 'c': input->force_x+= 1; input->force_y+= 1; break;
         case 'o': input->quit = 1; break; // Quit
-        case ERR :input->force_x = 0; input->force_y = 0; break;
+        //case ERR :input->force_x = 0; input->force_y = 0; break;
         default: break;
     }
 }
