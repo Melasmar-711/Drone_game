@@ -15,7 +15,7 @@
 
 #define Target_catched 200
 #define MAX_X 100
-#define MAX_Y 20
+#define MAX_Y 30
 
 typedef struct {
     float drone_x;
