@@ -12,7 +12,7 @@
 #define DRONE_MASS 1.0
 #define FRAME_RATE 30
 #define TIME_STEP (1.0 / FRAME_RATE)
-#define MAX_X 50
+#define MAX_X 100
 #define MAX_Y 30
 #define VISCOSITY_COEFFICIENT 0.7
 #define MAX_OBSTACLES 10
@@ -39,7 +39,7 @@ typedef struct {
 
 typedef struct {
     float x, y;
-} Vector;
+} Vector_2D;
 
 int create_and_open_fifo(const char *fifo_name, int flags) {
     mkfifo(fifo_name, 0666);
@@ -52,13 +52,10 @@ int create_and_open_fifo(const char *fifo_name, int flags) {
 }
 
 
-int is_closer_to_next(float num) {
-    float fractional_part = num - floor(num); // Extract the fractional part
-    return fractional_part >= 0.94;           // Check if closer to next number
-}
 
-Vector compute_repulsion_forces(int input_x_force,int input_y_force,float drone_x, float drone_y, int num_obstacles, int obstacles[][2]) {
-    Vector rep_force = {0, 0};
+
+Vector_2D compute_repulsion_forces(int input_x_force,int input_y_force,float drone_x, float drone_y, int num_obstacles, int obstacles[][2]) {
+    Vector_2D rep_force = {0, 0};
 
     for (int i = 0; i < num_obstacles; i++) {
         int dx = drone_x - obstacles[i][0];
@@ -93,8 +90,8 @@ Vector compute_repulsion_forces(int input_x_force,int input_y_force,float drone_
     return rep_force;
 }
 
-Vector compute_viscosity_force(float velocity_x, float velocity_y) {
-    Vector viscosity = {-VISCOSITY_COEFFICIENT * velocity_x, -VISCOSITY_COEFFICIENT * velocity_y};
+Vector_2D compute_viscosity_force(float velocity_x, float velocity_y) {
+    Vector_2D viscosity = {-VISCOSITY_COEFFICIENT * velocity_x, -VISCOSITY_COEFFICIENT * velocity_y};
     return viscosity;
 }
 
@@ -102,13 +99,13 @@ Vector compute_viscosity_force(float velocity_x, float velocity_y) {
 int main() {
 
     int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_WRONLY);
-    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_RDONLY);
+    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_RDONLY|O_NONBLOCK);
 
 
 
     ServerState state = {0};
-    Vector velocity = {0, 0};
-    Vector acceleration = {0, 0};
+    Vector_2D velocity = {0, 0};
+    Vector_2D acceleration = {0, 0};
 
     fd_set read_fds;
     struct timeval timeout = {0, 0};
@@ -143,17 +140,26 @@ int main() {
         ssize_t bytes = read(fd_server_to_Dynamics, &state, sizeof(ServerState));
         }
         
-        else
+
+        else 
         {
-            
+            printf("here ");
+            fflush(stdout);
+   
+            //prev_state.input_x_force=0;
+            //prev_state.input_y_force=0;
             state=prev_state;
         }
+        
 
-        Vector repulsion = compute_repulsion_forces(state.input_x_force,state.input_y_force,state.drone_x, state.drone_y, state.num_obstacles, state.obstacles);
-        Vector viscosity = compute_viscosity_force(state.velocity_x, state.velocity_y);
+
+        Vector_2D repulsion = compute_repulsion_forces(state.input_x_force,state.input_y_force,state.drone_x, state.drone_y, state.num_obstacles, state.obstacles);
+        Vector_2D viscosity = compute_viscosity_force(state.velocity_x, state.velocity_y);
 
 
         printf("force input %d %d \n",state.input_x_force,state.input_y_force);
+        printf("resultant force %f %f \n",(state.input_x_force + repulsion.x + viscosity.x) ,(state.input_y_force + repulsion.y + viscosity.y) );
+
         printf("repulsion %f %f\n",repulsion.x,repulsion.y);
         printf("vis %f %f\n",viscosity.x,viscosity.y);
 
@@ -173,9 +179,9 @@ int main() {
 
         state.velocity_x = velocity.x;
         state.velocity_y = velocity.y;
-
+        
         if (state.drone_x <= 1){ 
-            state.drone_x = 1;
+            state.drone_x = 2;
             state.velocity_x =0;
             state.velocity_y=0;
         
@@ -187,7 +193,7 @@ int main() {
 
         }
         if (state.drone_y <= 1) {
-            state.drone_y = 1;
+            state.drone_y = 2;
             state.velocity_y=0;
             state.velocity_x =0;
 
@@ -199,10 +205,10 @@ int main() {
             
         }
 
-        //if (is_closer_to_next(state.drone_x) ||is_closer_to_next(state.drone_y) ){
+
+
         write(fd_Dynamics_to_server, &state, sizeof(ServerState));
         prev_state=state;
-        //}
         usleep(1000000 / FRAME_RATE);
     }
 
