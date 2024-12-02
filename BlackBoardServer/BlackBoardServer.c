@@ -10,7 +10,10 @@
 
 #define MAX_OBSTACLES 10
 #define MAX_TARGETS 10
-#define MAX_X 50
+#define Target_catched 200
+
+
+#define MAX_X 100
 #define MAX_Y 30
 #define FRAME_RATE 30
 
@@ -93,7 +96,15 @@ int main() {
 
     fd_set read_fds;
     int fds[] = {fd_Dynamics_to_server, fd_Keyboard_to_server};
-    int max_fd = get_max_fd(fds, 2);
+    int max_rfd = get_max_fd(fds, 2);
+
+
+    fd_set write_fds;
+    int fds_w[] = {fd_server_to_GameWindow, fd_server_to_Dynamics};
+    int max_wfd = get_max_fd(fds, 2);
+
+
+    int max_fd = max_rfd>max_wfd? max_rfd:max_wfd;
 
     struct timeval timeout = {0, 0};
     long last_frame_time = current_time_in_ms();
@@ -111,30 +122,25 @@ int main() {
         }
         last_frame_time = current_time;
 
+
+
         FD_ZERO(&read_fds);
         FD_SET(fd_Dynamics_to_server, &read_fds);
         FD_SET(fd_Keyboard_to_server, &read_fds);
 
-        int activity = select(max_fd + 1, &read_fds, NULL, NULL, &timeout);
+
+        FD_ZERO(&write_fds);
+        FD_SET(fd_server_to_GameWindow, &write_fds);
+        FD_SET(fd_server_to_Dynamics, &write_fds);
+
+        int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
+
+
 
         if (activity > 0) {
 
 
 
-            // Handle input from DroneDynamics
-            if (FD_ISSET(fd_Dynamics_to_server, &read_fds)) {
-                ssize_t bytes_read = read(fd_Dynamics_to_server, &state, sizeof(ServerState));
-                if (bytes_read == sizeof(ServerState)) {
-                    // Enforce geofence boundaries
-                    if (state.drone_x < 0) state.drone_x = 0;
-                    if (state.drone_x >= MAX_X) state.drone_x = MAX_X - 1;
-                    if (state.drone_y < 0) state.drone_y = 0;
-                    if (state.drone_y >= MAX_Y) state.drone_y = MAX_Y - 1;
-                    printf("Updated state received from DroneDynamics %f\n ",state.drone_x);
-                }
-
-
-            }
 
 
             // Handle input from KeyboardManager
@@ -149,25 +155,60 @@ int main() {
                     }
                     state.input_x_force = input.force_x;
                     state.input_y_force = input.force_y;
-                    printf("Received from Keyboard: Force X = %d, Force Y = %d\n", input.force_x, input.force_y);
+                    //printf("Received from Keyboard: Force X = %d, Force Y = %d\n", input.force_x, input.force_y);
                     
                 }
+            }
+
+
+
+
+
+        // Send updated state to GameWindow
+            if (FD_ISSET(fd_server_to_GameWindow, &write_fds)) {
+                
+            write(fd_server_to_GameWindow, &state, sizeof(ServerState));
+
+            }
+
+
+
+
+
+        if (FD_ISSET(fd_server_to_Dynamics, &write_fds)) {
+                
+
+            if (prev_input.force_x!= input.force_x || prev_input.force_y!= input.force_y)
+            {
+
+            printf("i am sending to the dynamics now %d %d \n",state.input_x_force,state.input_y_force);
+
+            write(fd_server_to_Dynamics, &state, sizeof(ServerState));
+            prev_input=input;
             }
 
         }
 
 
+        // Handle input from DroneDynamics
+            if (FD_ISSET(fd_Dynamics_to_server, &read_fds)) {
+                ssize_t bytes_read = read(fd_Dynamics_to_server, &state, sizeof(ServerState));
+                if (bytes_read == sizeof(ServerState)) {
+                    // Enforce geofence boundaries
 
-        if (prev_input.force_x!= input.force_x || prev_input.force_y!= input.force_y){
-        // Send updated state to DroneDynamics
-        printf("i am sending to the dynamics now %d %d \n",state.input_x_force,state.input_y_force);
+                    printf("Updated state received from DroneDynamics %f\n ",state.drone_x);
+                }
 
-        write(fd_server_to_Dynamics, &state, sizeof(ServerState));
-        prev_input=input;
 
-        }
-        // Send updated state to GameWindow
-        write(fd_server_to_GameWindow, &state, sizeof(ServerState));
+            }
+
+
+
+
+        
+
+
+    }
     }
 
     // Close pipes

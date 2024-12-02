@@ -9,4 +9,4 @@ project(BlackBoardServer)
 add_executable(BlackBoardServer BlackBoardServer.c)
 
 # Link libraries if necessary
-target_link_libraries(BlackBoardServer ncurses)
+target_link_libraries(BlackBoardServer ncurses m)
