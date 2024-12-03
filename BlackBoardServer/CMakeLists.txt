@@ -1,12 +1,12 @@
-# Add the executable for blackboard_server
 
 
+add_executable(BlackBoardServer
+    BlackBoardServer.c
+    server_functions.c
+)
 
-cmake_minimum_required(VERSION 3.10)
-project(BlackBoardServer)
+target_include_directories(BlackBoardServer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Add executable
-add_executable(BlackBoardServer BlackBoardServer.c)
 
 # Link libraries if necessary
-target_link_libraries(BlackBoardServer ncurses m)
+target_link_libraries(BlackBoardServer  m)
