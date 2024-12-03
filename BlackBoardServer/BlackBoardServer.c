@@ -1,5 +1,6 @@
 
 #include "server_functions.h"
+#include"parameters.h"
 
 int main() {
 

@@ -5,8 +5,9 @@ add_executable(BlackBoardServer
     server_functions.c
 )
 
-target_include_directories(BlackBoardServer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+target_include_directories(BlackBoardServer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Link libraries if necessary
-target_link_libraries(BlackBoardServer  m)
+target_link_libraries(BlackBoardServer m )
+
