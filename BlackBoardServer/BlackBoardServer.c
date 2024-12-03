@@ -1,10 +1,30 @@
 
 #include "server_functions.h"
 #include"parameters.h"
+#include <signal.h>
+#include<stdbool.h>
+
+
+
+volatile bool is_paused = false;
+
+// Signal handler to toggle pause state
+void handle_pause_signal(int sig) {
+    if (sig == SIGUSR1) {
+        is_paused = !is_paused;
+        printf("Pause state toggled: %s\n", is_paused ? "Paused" : "Running");
+    }
+}
+
+
+
+
 
 int main() {
 
-    
+    signal(SIGUSR1, handle_pause_signal);
+
+
     // Create FIFOs
     int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_RDONLY|O_NONBLOCK);
     int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_WRONLY);
@@ -46,6 +66,12 @@ int main() {
     KeyboardInput input={0};
 
     while (1) {
+
+
+        if (is_paused) {
+            usleep(100000); // Sleep while paused to reduce CPU usage
+            continue;
+        }
 
         long current_time = current_time_in_ms();
         if (current_time - last_frame_time < 1000 / FRAME_RATE) {
@@ -110,9 +136,6 @@ int main() {
             }
 
 
-
-
-
         if (FD_ISSET(fd_server_to_Dynamics, &write_fds)) {
                 
 
@@ -127,7 +150,6 @@ int main() {
 
         }
 
-
         // Handle input from DroneDynamics
             if (FD_ISSET(fd_Dynamics_to_server, &read_fds)) {
                 ssize_t bytes_read = read(fd_Dynamics_to_server, &state, sizeof(ServerState));
@@ -138,12 +160,7 @@ int main() {
                 }
 
 
-            }
-
-
-
-
-        
+            }   
 
 
     }
