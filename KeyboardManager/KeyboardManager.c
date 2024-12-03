@@ -5,6 +5,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include<string.h>
+#include<signal.h>
 
 // Define the structure in a shared header file (e.g., `shared.h`)
 typedef struct {
@@ -13,7 +15,11 @@ typedef struct {
     int quit;    // Flag to indicate if the user wants to quit
 } KeyboardInput;
 
-#define DELAY 5000 // Delay in microseconds (adjust frame rate)
+#define DELAY 500000 // Delay in microseconds
+
+#define Pause 10
+#define stop  11
+#define Continue 12
 
 
 static inline int create_and_open_fifo(const char *fifo_name, int flags) {
@@ -28,8 +34,33 @@ static inline int create_and_open_fifo(const char *fifo_name, int flags) {
     return fd;
 }
 
+pid_t get_pid(const char *program_name) {
+    char line[256];
+    // Construct the command to get the PID of the process
+    char command[256];
+    snprintf(command, sizeof(command), "pidof %s", program_name);
 
-#define DELAY 500000 // Delay in microseconds
+    // Open the command for reading
+    FILE *cmd = popen(command, "r");
+    if (cmd == NULL) {
+        perror("Failed to run pidof");
+        return -1;
+    }
+
+    // Read the output (the PID) from the command
+    if (fgets(line, 256, cmd) != NULL) {
+        // Convert the string to pid_t (unsigned long) and return the PID
+        pid_t pid = strtoul(line, NULL, 10);
+        pclose(cmd);
+        return pid;
+    } else {
+        // If no output (process not found), close and return -1
+        pclose(cmd);
+        return -1;
+    }
+}
+
+
 
 void init_ncurses();
 void process_input(KeyboardInput *input);
@@ -39,11 +70,15 @@ int main() {
 
     int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server", O_WRONLY);
 
+    pid_t server_pid=get_pid("BlackBoardServer");
+    pid_t GameWindow=get_pid("GameWindow");
+    
+
 
     KeyboardInput input = {0, 0, 0}, prev_input = {0, 0, 0};
     init_ncurses();
 
-    while (!input.quit) {
+    while (input.quit!=11) {
         clear(); // Clear the screen
 
         draw_keyboard_layout(&input);
@@ -51,6 +86,19 @@ int main() {
         // Process user input and update the structure
         
         process_input(&input);
+
+
+        if (input.quit==Pause && prev_input.quit !=Pause){
+            input.force_x=prev_input.force_x;
+            input.force_y=prev_input.force_y;
+            
+            kill(server_pid, SIGUSR1);
+
+            usleep(10000);
+            prev_input.quit=Pause;
+            continue;
+        }
+        
 
         // Check if forces have changed or quit signal is sent
         //if (memcmp(&input, &prev_input, sizeof(KeyboardInput)) ) {
@@ -74,7 +122,7 @@ void init_ncurses() {
     noecho();
     curs_set(FALSE);
     nodelay(stdscr, TRUE);
-    timeout(100);
+    //timeout(100);
     keypad(stdscr, TRUE);
 }
 
@@ -92,6 +140,8 @@ void process_input(KeyboardInput *input) {
         case 'z': input->force_x-=1; input->force_y += 1; break;
         case 'c': input->force_x+= 1; input->force_y+= 1; break;
         case 'o': input->quit = 1; break; // Quit
+        case 'p': input->quit=10;break;
+
         //case ERR :input->force_x = 0; input->force_y = 0; break;
         default: break;
     }
