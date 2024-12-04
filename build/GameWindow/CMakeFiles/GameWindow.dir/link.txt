@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/GameWindow.dir/GameWindow.c.o -o GameWindow  -lcurses /usr/lib/x86_64-linux-gnu/libform.so -lm 

@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/Obstacle_Targets_Generator.dir/Obstacle_Targets_Generator.c.o -o Obstacle_Targets_Generator  -lm 

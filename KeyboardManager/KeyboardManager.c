@@ -88,14 +88,15 @@ int main() {
         process_input(&input);
 
 
-        if (input.quit==Pause && prev_input.quit !=Pause){
+        if (input.quit==Pause || input.quit==Continue){
+            
             input.force_x=prev_input.force_x;
             input.force_y=prev_input.force_y;
             
             kill(server_pid, SIGUSR1);
 
             usleep(10000);
-            prev_input.quit=Pause;
+            input.quit=0;
             continue;
         }
         
@@ -141,9 +142,10 @@ void process_input(KeyboardInput *input) {
         case 'c': input->force_x+= 1; input->force_y+= 1; break;
         case 'o': input->quit = 1; break; // Quit
         case 'p': input->quit=10;break;
+        case ']': input->quit=Continue;
 
         //case ERR :input->force_x = 0; input->force_y = 0; break;
-        default: break;
+        default: break;  
     }
 }
 

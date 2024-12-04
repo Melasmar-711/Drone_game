@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "string_view": "cpp",
+        "iterator": "c",
+        "stdio.h": "c",
+        "vector": "c",
+        "string.h": "c",
+        "stdlib.h": "c",
+        "*.tcc": "c"
+    }
+}

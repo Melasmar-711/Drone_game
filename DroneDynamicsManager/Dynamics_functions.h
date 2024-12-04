@@ -19,8 +19,8 @@
 #define DRONE_MASS 1.0
 #define FRAME_RATE 30
 #define TIME_STEP (1.0 / FRAME_RATE)
-#define MAX_X 100
-#define MAX_Y 30
+#define MAX_X 90
+#define MAX_Y 20
 #define VISCOSITY_COEFFICIENT 0.7
 #define MAX_OBSTACLES 10
 #define MAX_TARGETS 10

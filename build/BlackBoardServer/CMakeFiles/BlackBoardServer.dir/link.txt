@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/BlackBoardServer.dir/BlackBoardServer.c.o CMakeFiles/BlackBoardServer.dir/server_functions.c.o -o BlackBoardServer  -lm 

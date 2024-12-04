@@ -14,8 +14,8 @@
 #define MAX_TARGETS 10
 
 #define Target_catched 200
-#define MAX_X 100
-#define MAX_Y 30
+#define MAX_X 90
+#define MAX_Y 20
 
 typedef struct {
     float drone_x;
@@ -260,9 +260,9 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
 
         }
 
-        mvprintw(35,40,"score : "); // the score
+        mvprintw(21,40,"score : "); // the score
 
-        mvprintw(35,48,"%d", score); // the score
+        mvprintw(21,48,"%d", score); // the score
 
 
         attroff(COLOR_PAIR(2));

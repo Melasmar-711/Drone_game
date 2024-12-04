@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/DroneDynamicsManager.dir/DroneDynamicsManager.c.o CMakeFiles/DroneDynamicsManager.dir/Dynamics_functions.c.o -o DroneDynamicsManager  -lm 

@@ -1,6 +1,5 @@
 
 #include "server_functions.h"
-#include"parameters.h"
 #include <signal.h>
 #include<stdbool.h>
 
