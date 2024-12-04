@@ -56,6 +56,4 @@ Vector_2D compute_viscosity_force(float velocity_x, float velocity_y);
 
 
 
-
-
 #endif

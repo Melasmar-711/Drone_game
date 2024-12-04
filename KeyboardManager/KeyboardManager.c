@@ -17,7 +17,7 @@ typedef struct {
 
 #define DELAY 500000 // Delay in microseconds
 
-#define Pause 10
+#define Pause_or_Continue 10
 #define stop  11
 #define Continue 12
 
@@ -72,6 +72,12 @@ int main() {
 
     pid_t server_pid=get_pid("BlackBoardServer");
     pid_t GameWindow=get_pid("GameWindow");
+    pid_t DroneDynamicsManager=get_pid("DroneDynamicsManager");
+    //pid_t Targets_Generator=get_pid("Targets_Generator");
+    //pid_t Obstcales_Generator=get_pid("Obstcales_Generator");
+
+
+
     
 
 
@@ -88,13 +94,31 @@ int main() {
         process_input(&input);
 
 
-        if (input.quit==Pause || input.quit==Continue){
+        if (input.quit==Pause_or_Continue){
             
             input.force_x=prev_input.force_x;
             input.force_y=prev_input.force_y;
             
             kill(server_pid, SIGUSR1);
+            kill(GameWindow, SIGUSR1);
+            kill(DroneDynamicsManager, SIGUSR1);
+            //kill(Obstcales_Generator, SIGUSR1);
+            //kill(Targets_Generator, SIGUSR1);
+            usleep(10000);
+            input.quit=0;
+            continue;
+        }
 
+        if (input.quit==stop){
+            
+            input.force_x=prev_input.force_x;
+            input.force_y=prev_input.force_y;
+            
+            kill(server_pid, SIGINT);
+            kill(GameWindow, SIGINT);
+            kill(DroneDynamicsManager, SIGINT);
+            //kill(Obstcales_Generator, SIGINT);
+            //kill(Targets_Generator, SIGINT);
             usleep(10000);
             input.quit=0;
             continue;
@@ -140,9 +164,8 @@ void process_input(KeyboardInput *input) {
         case 'e': input->force_x += 1; input->force_y -=1; break;
         case 'z': input->force_x-=1; input->force_y += 1; break;
         case 'c': input->force_x+= 1; input->force_y+= 1; break;
-        case 'o': input->quit = 1; break; // Quit
-        case 'p': input->quit=10;break;
-        case ']': input->quit=Continue;
+        case 'o': input->quit = stop; break; // Quit
+        case 'p': input->quit=Pause_or_Continue;break;
 
         //case ERR :input->force_x = 0; input->force_y = 0; break;
         default: break;  

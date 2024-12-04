@@ -59,6 +59,8 @@ int main() {
 
     int max_fd = max_rfd>max_wfd? max_rfd:max_wfd;
 
+    
+
     struct timeval timeout = {0, 0};
     long last_frame_time = current_time_in_ms();
     KeyboardInput prev_input={0};
