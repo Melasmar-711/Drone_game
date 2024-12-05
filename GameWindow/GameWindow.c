@@ -78,10 +78,8 @@ int main() {
         .resultant_force_y = 0,
         .velocity_x = 0,
         .velocity_y = 0,
-        .num_obstacles = 3,
-        .obstacles = {{5, 5}, {20, 7}, {30, 15}},
-        .num_targets = 2,
-        .targets = {{40, 3}, {25, 18}}
+        .num_obstacles = MAX_OBSTACLES,
+        .num_targets = MAX_TARGETS,
     };
 
 
@@ -111,7 +109,7 @@ int main() {
         ssize_t bytes_read = read(fd_server_to_GameWindow, &state, sizeof(ServerState));
         //}
 
-        
+    
         draw_simulation(&prev_state,&state,target_active_flags);
 
         refresh();
@@ -180,6 +178,11 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
     // Handle obstacles
     for (int i = 0; i < MAX_OBSTACLES; i++) 
     {
+        if (current_state->obstacles[i][0] == 0 && current_state->obstacles[i][1] == 0) {
+            // Use previous state values if current values are zero
+            current_state->obstacles[i][0] = prev_state->obstacles[i][0];
+            current_state->obstacles[i][1] = prev_state->obstacles[i][1];
+        } 
 
         attron(COLOR_PAIR(3));
         
@@ -208,14 +211,19 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
     }
 
 
-
+    
     // Handle targets
-    for (int i = 0; i < MAX_TARGETS; i++) 
-    {
+    for (int i = 0; i < current_state->num_targets; i++) {
+        static int prev_flags[MAX_TARGETS] = {0};
+        static int score = 0;
 
-        static int prev_flags[MAX_TARGETS]={0};
-        static int score=0;
-
+        // Check if the target's current position is zero
+        if (current_state->targets[i][0] == 0 && current_state->targets[i][1] == 0) {
+            // Use previous state values if current values are zero
+            current_state->targets[i][0] = prev_state->targets[i][0];
+            current_state->targets[i][1] = prev_state->targets[i][1];
+        } 
+        
         int dx = current_state->drone_x - current_state->targets[i][0];
         int dy = current_state->drone_y - current_state->targets[i][1];
         double distance = sqrt(dx * dx + dy * dy);
@@ -241,7 +249,7 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
             // Target removed
             mvprintw(prev_state->targets[i][1], prev_state->targets[i][0], " ");
             flags[i]=0;
-        }
+        } 
 
         else if (i < prev_state->num_targets && i < current_state->num_targets) 
         {
