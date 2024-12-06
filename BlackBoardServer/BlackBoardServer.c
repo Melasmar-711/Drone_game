@@ -68,7 +68,8 @@ int main() {
 
     while (1) {
 
-    
+        bool new_obstacle_arrived = false;
+
         if (is_paused) {
             usleep(100000); // Sleep while paused to reduce CPU usage
             continue;
@@ -147,7 +148,7 @@ int main() {
                 // Copy data into state struct
                 memcpy(state.obstacles, new_obstacles, sizeof(new_obstacles));
                 state.num_obstacles = MAX_OBSTACLES;
-
+                new_obstacle_arrived = true;
                 // Print received obstacles
                 printf("Received %d obstacles:\n", state.num_obstacles);
                 for (int i = 0; i < MAX_OBSTACLES; i++) {
@@ -161,30 +162,7 @@ int main() {
 
         // Send updated state to GameWindow
             if (FD_ISSET(fd_server_to_GameWindow, &write_fds)) {
-            // Check for zero values and update the previous state if necessary
-                // for (int i = 0; i < MAX_OBSTACLES; i++) {
-                //     if (state.obstacles[i][0] == 0 && state.obstacles[i][1] == 0) {
-                //         // Use previous state values if current values are zero
-                //         state.obstacles[i][0] = prev_state.obstacles[i][0];
-                //         state.obstacles[i][1] = prev_state.obstacles[i][1];
-                //     } else {
-                //         // Update previous state with current values
-                //         prev_state.obstacles[i][0] = state.obstacles[i][0];
-                //         prev_state.obstacles[i][1] = state.obstacles[i][1];
-                //     }
-                // }
 
-                // for (int i = 0; i < MAX_TARGETS; i++) {
-                //     if (state.targets[i][0] == 0 && state.targets[i][1] == 0) {
-                //         // Use previous state values if current values are zero
-                //         state.targets[i][0] = prev_state.targets[i][0];
-                //         state.targets[i][1] = prev_state.targets[i][1];
-                //     } else {
-                //         // Update previous state with current values
-                //         prev_state.targets[i][0] = state.targets[i][0];
-                //         prev_state.targets[i][1] = state.targets[i][1];
-                //     }
-                // }    
                 write(fd_server_to_GameWindow, &state, sizeof(ServerState));
                 // for (int i = 0; i < MAX_OBSTACLES; i++) {
                 //     printf("Obstacle %d: (%d, %d)\n", i, state.obstacles[i][0], state.obstacles[i][1]);
@@ -198,12 +176,13 @@ int main() {
         if (FD_ISSET(fd_server_to_Dynamics, &write_fds)) {
                 
 
-            if (prev_input.force_x!= input.force_x || prev_input.force_y!= input.force_y)
+            if (prev_input.force_x!= input.force_x || prev_input.force_y!= input.force_y || new_obstacle_arrived)
             {
 
             printf("i am sending to the dynamics now %d %d \n",state.input_x_force,state.input_y_force);
 
             write(fd_server_to_Dynamics, &state, sizeof(ServerState));
+            new_obstacle_arrived = false;
             prev_input=input;
             }
 
