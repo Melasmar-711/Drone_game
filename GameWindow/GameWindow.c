@@ -90,7 +90,7 @@ int main() {
     ServerState prev_state={0};
     init_ncurses();
     draw_borders();
-    draw_simulation(&prev_state,&state,target_active_flags);
+    //draw_simulation(&prev_state,&state,target_active_flags);
 
     refresh();
 
@@ -163,16 +163,6 @@ void draw_borders() {
 
 
 void draw_simulation(ServerState *prev_state, ServerState *current_state, int *flags) {
-    // Handle the drone position
-    if (prev_state->drone_x != current_state->drone_x || prev_state->drone_y != current_state->drone_y) {
-        // Erase old drone position
-        attron(COLOR_PAIR(1));
-        mvprintw((int) prev_state->drone_y, (int) prev_state->drone_x, " ");
-        // Draw new drone position
-        mvprintw((int) current_state->drone_y, (int) current_state->drone_x, "+");
-        attroff(COLOR_PAIR(1));
-    }
-
     // Handle obstacles
     for (int i = 0; i < MAX_OBSTACLES; i++) {
         if (current_state->obstacles[i][0] == 0 && current_state->obstacles[i][1] == 0) {
@@ -231,5 +221,14 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state, int *f
         mvprintw(35, 48, "%d", score);
 
         attroff(COLOR_PAIR(2));
+    }
+    // Handle the drone position
+    if (prev_state->drone_x != current_state->drone_x || prev_state->drone_y != current_state->drone_y) {
+        // Erase old drone position
+        attron(COLOR_PAIR(1));
+        mvprintw((int) prev_state->drone_y, (int) prev_state->drone_x, " ");
+        // Draw new drone position
+        mvprintw((int) current_state->drone_y, (int) current_state->drone_x, "+");
+        attroff(COLOR_PAIR(1));
     }
 }
