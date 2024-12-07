@@ -2,7 +2,7 @@
 
 int main() {
     // Seed random number generator
-    srand(time(NULL));
+    srand(time(NULL) + 2);
 
     // Create FIFO
     int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server", O_WRONLY);

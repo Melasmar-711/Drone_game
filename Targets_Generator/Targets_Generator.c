@@ -2,7 +2,7 @@
 
 int main() {
     // Seed random number generator
-    srand(time(NULL));
+    srand(time(NULL) + 1);
 
     // Create FIFO
     int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server", O_WRONLY);
