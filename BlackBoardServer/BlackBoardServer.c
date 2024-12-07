@@ -1,4 +1,3 @@
-
 #include "server_functions.h"
 #include <signal.h>
 #include<stdbool.h>
@@ -29,6 +28,8 @@ int main() {
     int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_WRONLY);
     int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow", O_WRONLY);
     int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server", O_RDONLY|O_NONBLOCK);
+    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server", O_RDONLY | O_NONBLOCK);
+    int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server", O_RDONLY | O_NONBLOCK);
 
 
     // Server state
@@ -41,15 +42,16 @@ int main() {
         .resultant_force_y = 0,
         .velocity_x = 0,
         .velocity_y = 0,
-        .num_obstacles = 3,
-        .obstacles = {{5, 5}, {20, 7}, {30, 15}},
-        .num_targets = 2,
-        .targets = {{40, 3}, {25, 18}}
+        .num_obstacles = MAX_OBSTACLES,
+        .num_targets = MAX_TARGETS,
     };
 
+    // Previous state to store valid obstacle and target values
+    // ServerState prev_state = state;
+
     fd_set read_fds;
-    int fds[] = {fd_Dynamics_to_server, fd_Keyboard_to_server};
-    int max_rfd = get_max_fd(fds, 2);
+    int fds[] = {fd_Dynamics_to_server, fd_Keyboard_to_server, fd_target_generator_to_server, fd_obstacle_generator_to_server};
+    int max_rfd = get_max_fd(fds, 4);
 
 
     fd_set write_fds;
@@ -68,6 +70,7 @@ int main() {
 
     while (1) {
 
+        bool new_obstacle_arrived = false;
 
         if (is_paused) {
             usleep(100000); // Sleep while paused to reduce CPU usage
@@ -88,7 +91,8 @@ int main() {
         FD_ZERO(&read_fds);
         FD_SET(fd_Dynamics_to_server, &read_fds);
         FD_SET(fd_Keyboard_to_server, &read_fds);
-
+        FD_SET(fd_target_generator_to_server, &read_fds);
+        FD_SET(fd_obstacle_generator_to_server, &read_fds);
 
         FD_ZERO(&write_fds);
         FD_SET(fd_server_to_GameWindow, &write_fds);
@@ -99,11 +103,7 @@ int main() {
 
 
         if (activity > 0) {
-
-
-
-
-
+        
             // Handle input from KeyboardManager
             if (FD_ISSET(fd_Keyboard_to_server, &read_fds)) {
                 
@@ -125,27 +125,66 @@ int main() {
                 }
             }
 
-
-
+        // Handle input from Target Generator
+        if (FD_ISSET(fd_target_generator_to_server, &read_fds)) {
+            int new_targets[MAX_TARGETS][2];
+            ssize_t bytes_read = read(fd_target_generator_to_server, new_targets, sizeof(new_targets));
+            if (bytes_read == sizeof(new_targets)) {
+                // Copy data into state struct
+                memcpy(state.targets, new_targets, sizeof(new_targets));
+                state.num_targets = MAX_TARGETS;
+                //state.num_targets = sizeof(new_targets) / sizeof(new_targets[0]);
+                //printf("Updated targets received from Target Generator.\n");
+                //printf("Received %d targets:\n", state.num_targets);
+            for (int i = 0; i < MAX_TARGETS; i++) {
+                printf("Target %d: (%d, %d)\n", i, state.targets[i][0], state.targets[i][1]);
+            }
+            }
+        }
+        
+        // Handle input from Obstacle Generator
+        if (FD_ISSET(fd_obstacle_generator_to_server, &read_fds)) {
+            int new_obstacles[MAX_OBSTACLES][2];
+            ssize_t bytes_read = read(fd_obstacle_generator_to_server, new_obstacles, sizeof(new_obstacles));
+            if (bytes_read == sizeof(new_obstacles)) {
+                // Copy data into state struct
+                memcpy(state.obstacles, new_obstacles, sizeof(new_obstacles));
+                state.num_obstacles = MAX_OBSTACLES;
+                new_obstacle_arrived = true;
+                // Print received obstacles
+                printf("Received %d obstacles:\n", state.num_obstacles);
+                for (int i = 0; i < MAX_OBSTACLES; i++) {
+                    printf("Obstacle %d: (%d, %d)\n", i, state.obstacles[i][0], state.obstacles[i][1]);
+                }
+            } else {
+                fprintf(stderr, "Failed to read the correct number of bytes from obstacle generator.\n");
+            }
+}
 
 
         // Send updated state to GameWindow
             if (FD_ISSET(fd_server_to_GameWindow, &write_fds)) {
-                
-            write(fd_server_to_GameWindow, &state, sizeof(ServerState));
 
+                write(fd_server_to_GameWindow, &state, sizeof(ServerState));
+                // for (int i = 0; i < MAX_OBSTACLES; i++) {
+                //     printf("Obstacle %d: (%d, %d)\n", i, state.obstacles[i][0], state.obstacles[i][1]);
+                // }
+                // for (int i = 0; i < MAX_TARGETS; i++) {
+                //     printf("Target %d: (%d, %d)\n", i, state.targets[i][0], state.targets[i][1]);
+                // }
             }
 
 
         if (FD_ISSET(fd_server_to_Dynamics, &write_fds)) {
                 
 
-            if (prev_input.force_x!= input.force_x || prev_input.force_y!= input.force_y)
+            if (prev_input.force_x!= input.force_x || prev_input.force_y!= input.force_y || new_obstacle_arrived)
             {
 
             printf("i am sending to the dynamics now %d %d \n",state.input_x_force,state.input_y_force);
 
             write(fd_server_to_Dynamics, &state, sizeof(ServerState));
+            new_obstacle_arrived = false;
             prev_input=input;
             }
 
@@ -172,6 +211,8 @@ int main() {
     close(fd_server_to_Dynamics);
     close(fd_server_to_GameWindow);
     close(fd_Keyboard_to_server);
+    close(fd_target_generator_to_server);
+    close(fd_obstacle_generator_to_server);
 
     return 0;
 }

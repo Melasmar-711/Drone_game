@@ -14,8 +14,8 @@
 #define MAX_TARGETS 10
 
 #define Target_catched 200
-#define MAX_X 90
-#define MAX_Y 20
+#define MAX_X 100
+#define MAX_Y 30
 
 typedef struct {
     float drone_x;
@@ -78,10 +78,8 @@ int main() {
         .resultant_force_y = 0,
         .velocity_x = 0,
         .velocity_y = 0,
-        .num_obstacles = 3,
-        .obstacles = {{5, 5}, {20, 7}, {30, 15}},
-        .num_targets = 2,
-        .targets = {{40, 3}, {25, 18}}
+        .num_obstacles = MAX_OBSTACLES,
+        .num_targets = MAX_TARGETS,
     };
 
 
@@ -92,7 +90,7 @@ int main() {
     ServerState prev_state={0};
     init_ncurses();
     draw_borders();
-    draw_simulation(&prev_state,&state,target_active_flags);
+    //draw_simulation(&prev_state,&state,target_active_flags);
 
     refresh();
 
@@ -111,7 +109,7 @@ int main() {
         ssize_t bytes_read = read(fd_server_to_GameWindow, &state, sizeof(ServerState));
         //}
 
-        
+    
         draw_simulation(&prev_state,&state,target_active_flags);
 
         refresh();
@@ -164,108 +162,73 @@ void draw_borders() {
 
 
 
-void draw_simulation(ServerState *prev_state, ServerState *current_state,int *flags) {
-    // Handle the drone position
-    if (prev_state->drone_x != current_state->drone_x || prev_state->drone_y != current_state->drone_y) 
-    {
-        // Erase old drone position
-        attron(COLOR_PAIR(1));
-        mvprintw((int) prev_state->drone_y, (int)prev_state->drone_x, " ");
-        // Draw new drone position
-        mvprintw((int)current_state->drone_y, (int)current_state->drone_x, "+");
-
-        attroff(COLOR_PAIR(1));
-    }
-
+void draw_simulation(ServerState *prev_state, ServerState *current_state, int *flags) {
     // Handle obstacles
-    for (int i = 0; i < MAX_OBSTACLES; i++) 
-    {
-
-        attron(COLOR_PAIR(3));
-        
-        if (i >= prev_state->num_obstacles && i < current_state->num_obstacles)
-        {
-            // New obstacle added
-            mvprintw(current_state->obstacles[i][1], current_state->obstacles[i][0], "O");
-        } 
-        else if (i < prev_state->num_obstacles && i >= current_state->num_obstacles) 
-        {
-            // Obstacle removed
-            mvprintw(prev_state->obstacles[i][1], prev_state->obstacles[i][0], " ");
-        } 
-        else if (i < prev_state->num_obstacles && i < current_state->num_obstacles) 
-        {
-            // Check if an obstacle moved
-            if (prev_state->obstacles[i][0] != current_state->obstacles[i][0] ||
-                prev_state->obstacles[i][1] != current_state->obstacles[i][1]) 
-            {
-                mvprintw(prev_state->obstacles[i][1], prev_state->obstacles[i][0], " "); // Erase old position
-                mvprintw(current_state->obstacles[i][1], current_state->obstacles[i][0], "O"); // Draw new position
-            }
+    for (int i = 0; i < MAX_OBSTACLES; i++) {
+        if (current_state->obstacles[i][0] == 0 && current_state->obstacles[i][1] == 0) {
+            // Use previous state values if current values are zero
+            current_state->obstacles[i][0] = prev_state->obstacles[i][0];
+            current_state->obstacles[i][1] = prev_state->obstacles[i][1];
         }
 
+        // Erase old obstacle position before drawing a new one
+        if (prev_state->obstacles[i][0] != current_state->obstacles[i][0] || prev_state->obstacles[i][1] != current_state->obstacles[i][1]) {
+            mvprintw(prev_state->obstacles[i][1], prev_state->obstacles[i][0], " ");
+        }
+
+        attron(COLOR_PAIR(3));
+        // Draw the new obstacle position
+        mvprintw(current_state->obstacles[i][1], current_state->obstacles[i][0], "O");
         attroff(COLOR_PAIR(3));
     }
 
-
-
     // Handle targets
-    for (int i = 0; i < MAX_TARGETS; i++) 
-    {
+    for (int i = 0; i < current_state->num_targets; i++) {
+        static int prev_flags[MAX_TARGETS] = {0};
+        static int score = 0;
 
-        static int prev_flags[MAX_TARGETS]={0};
-        static int score=0;
+        // Ensure target positions are updated correctly
+        if (current_state->targets[i][0] == 0 && current_state->targets[i][1] == 0) {
+            // Use previous state values if current values are zero
+            current_state->targets[i][0] = prev_state->targets[i][0];
+            current_state->targets[i][1] = prev_state->targets[i][1];
+        }
 
+        // Calculate distance from drone to target
         int dx = current_state->drone_x - current_state->targets[i][0];
         int dy = current_state->drone_y - current_state->targets[i][1];
         double distance = sqrt(dx * dx + dy * dy);
 
-        if (distance<0.2 && prev_flags[i]!=1 )
-        {
-            flags[i]=1;  // this means it's taken now
-            prev_flags[i]=1;
+        // Check if the target is "taken"
+        if (distance < 0.2 && prev_flags[i] != 1) {
+            flags[i] = 1;  // Target is taken now
+            prev_flags[i] = 1;  // Update flag to indicate target is taken
             score++;
-
         }
 
         attron(COLOR_PAIR(2));
 
-        if (i >= prev_state->num_targets && i < current_state->num_targets   && flags[i]==0 ) 
-        {
-            // New target added
+        // Only draw targets that are not "taken"
+        if (flags[i] == 0) {
             mvprintw(current_state->targets[i][1], current_state->targets[i][0], "T");
-        } 
-        
-        else if (((i < prev_state->num_targets && i >= current_state->num_targets ) ) || flags[i]==1 ) 
-        {
-            // Target removed
-            mvprintw(prev_state->targets[i][1], prev_state->targets[i][0], " ");
-            flags[i]=0;
+        } else {
+            // Erase target if it is taken
+            mvprintw(current_state->targets[i][1], current_state->targets[i][0], " ");
         }
 
-        else if (i < prev_state->num_targets && i < current_state->num_targets) 
-        {
-            // Check if a target moved
-            if (prev_state->targets[i][0] != current_state->targets[i][0] || prev_state->targets[i][1] != current_state->targets[i][1])      
-            {
-
-
-                mvprintw(prev_state->targets[i][1], prev_state->targets[i][0], " "); // Erase old position
-                
-                mvprintw(current_state->targets[i][1], current_state->targets[i][0], "T"); // Draw new position
-
-
-            }
-
-
-        }
-
-        mvprintw(21,40,"score : "); // the score
-
-        mvprintw(21,48,"%d", score); // the score
-
+        // Print score
+        mvprintw(35, 40, "score : ");
+        mvprintw(35, 48, "%d", score);
 
         attroff(COLOR_PAIR(2));
-
+    }
+    // Handle the drone position
+    if (prev_state->drone_x != current_state->drone_x || prev_state->drone_y != current_state->drone_y) {
+        // Erase old drone position
+        attron(COLOR_PAIR(1));
+        mvprintw((int) prev_state->drone_y, (int) prev_state->drone_x, " ");
+        // Draw new drone position
+        mvprintw((int) current_state->drone_y, (int) current_state->drone_x, "+");
+        attroff(COLOR_PAIR(1));
     }
 }

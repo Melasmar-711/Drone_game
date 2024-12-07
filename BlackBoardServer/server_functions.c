@@ -36,10 +36,8 @@ ServerState initialize_server_state() {
         .resultant_force_y = 0,
         .velocity_x = 0,
         .velocity_y = 0,
-        .num_obstacles = 3,
-        .obstacles = {{5, 5}, {20, 7}, {30, 15}},
-        .num_targets = 2,
-        .targets = {{40, 3}, {25, 18}}
+        .num_obstacles = MAX_OBSTACLES,
+        .num_targets = MAX_TARGETS,
     };
 }
 
