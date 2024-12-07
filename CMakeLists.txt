@@ -7,6 +7,13 @@ project(DroneSimulation VERSION 1.0)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/shared)
 
+# Add the common library
+add_library(shared common_files/sig_handle.c)
+
+
+# Include directories for the shared library
+target_include_directories(shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common_files)
+
 # Add subdirectories for each module
 add_subdirectory(KeyboardManager)
 add_subdirectory(Targets_Generator)

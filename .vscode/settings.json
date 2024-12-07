@@ -6,6 +6,8 @@
         "vector": "c",
         "string.h": "c",
         "stdlib.h": "c",
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "signal_handles.h": "c",
+        "sig_handle.h": "c"
     }
 }

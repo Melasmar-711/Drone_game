@@ -1,7 +1,14 @@
 #include "Dynamics_functions.h"
+#include "sig_handle.h"
+
+
+
+
 
 
 int main() {
+
+    signal(SIGUSR1, handle_pause_signal);
 
     int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_WRONLY);
     int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_RDONLY|O_NONBLOCK);
@@ -31,6 +38,14 @@ int main() {
 
 
     while (1) {
+
+
+
+        if (is_paused) {
+            usleep(100000); // Sleep while paused to reduce CPU usage
+            continue;
+        }
+
 
         FD_ZERO(&read_fds);
         FD_SET(fd_server_to_Dynamics, &read_fds);

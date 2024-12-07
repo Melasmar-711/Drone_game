@@ -1,18 +1,11 @@
 #include "server_functions.h"
-#include <signal.h>
-#include<stdbool.h>
 
 
 
-volatile bool is_paused = false;
+#include"sig_handle.h"
 
-// Signal handler to toggle pause state
-void handle_pause_signal(int sig) {
-    if (sig == SIGUSR1) {
-        is_paused = !is_paused;
-        printf("Pause state toggled: %s\n", is_paused ? "Paused" : "Running");
-    }
-}
+
+
 
 
 

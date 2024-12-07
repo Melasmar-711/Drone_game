@@ -8,6 +8,8 @@
 #include <sys/select.h>
 #include <math.h>
 
+#include"sig_handle.h"
+
 
 
 #define MAX_OBSTACLES 10
@@ -54,9 +56,19 @@ void init_ncurses();
 void draw_borders();
 void draw_simulation(ServerState *prev_state, ServerState *current_state,int *flags);
 
+
+
+
+
+
+
 int main() {
     
     
+    signal(SIGUSR1, handle_pause_signal);
+
+
+
     fd_set read_fds;
     struct timeval timeout = {0, 0};
 
@@ -98,17 +110,15 @@ int main() {
     while (1) {
 
 
-        //FD_ZERO(&read_fds);
-        //FD_SET(fd_server_to_GameWindow, &read_fds);
+        if (is_paused) {
+            usleep(100000); // Sleep while paused to reduce CPU usage
+            continue;
+        }
 
-        //int activity = select(fd_server_to_GameWindow + 1, &read_fds, NULL, NULL, &timeout);
-
-        //if (activity>0){
 
 
         ssize_t bytes_read = read(fd_server_to_GameWindow, &state, sizeof(ServerState));
-        //}
-
+        
     
         draw_simulation(&prev_state,&state,target_active_flags);
 

@@ -9,5 +9,5 @@ add_executable(BlackBoardServer
 target_include_directories(BlackBoardServer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Link libraries if necessary
-target_link_libraries(BlackBoardServer m )
+target_link_libraries(BlackBoardServer m shared)
 

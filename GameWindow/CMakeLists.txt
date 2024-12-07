@@ -9,6 +9,6 @@ find_package(Curses REQUIRED)
 add_executable(GameWindow GameWindow.c)
 
 # Link ncurses
-target_link_libraries(GameWindow ${CURSES_LIBRARIES} m)
+target_link_libraries(GameWindow ${CURSES_LIBRARIES} m shared)
 
 

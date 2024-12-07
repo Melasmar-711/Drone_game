@@ -6,4 +6,4 @@ add_executable(DroneDynamicsManager
 
 target_include_directories(DroneDynamicsManager PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(DroneDynamicsManager m)
+target_link_libraries(DroneDynamicsManager m shared)
