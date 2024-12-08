@@ -4,21 +4,32 @@
 
 
 int main() {
-    // Seed random number generator
-    srand(time(NULL) + 1);
+
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
 
+    int fifo_id=0;
 
+start:
+
+    if(reset){
+
+        fifo_id++;
+        reset=false;
+        usleep(10000);
+
+    }
+
+
+    // Seed random number generator
+    srand(time(NULL) + 1);
 
     // Create FIFO
-    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server", O_WRONLY);
+    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d",fifo_id, O_WRONLY);
 
     int num_targets = MAX_TARGETS; 
     int targets[MAX_TARGETS][2];
 
-    start:
-    reset=false;
 
 
 
@@ -40,12 +51,12 @@ int main() {
     printf("Generated and sent %d targets.\n", num_targets);
 
 
-    while(!reset & !stop ){
-
-    }
+    while(!reset & !stop ){}
+    
     if(reset)
     {
-    goto start ;
+        close(fd_target_generator_to_server);
+        goto start ;
     }
 
     close(fd_target_generator_to_server);

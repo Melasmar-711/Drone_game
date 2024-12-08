@@ -34,7 +34,6 @@ typedef struct {
 } Target;
 
 
-int create_and_open_fifo(const char *fifo_name, int flags);
 
 #endif // GENERATOR_FUNCTIONS_H
 

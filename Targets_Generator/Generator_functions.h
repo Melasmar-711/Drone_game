@@ -16,6 +16,7 @@
 #include <sys/select.h>
 #include <time.h>
 #include <sys/time.h>
+#include"shared.h"
 
 
 
@@ -32,8 +33,6 @@ typedef struct {
     int y;
 } Target;
 
-
-int create_and_open_fifo(const char *fifo_name, int flags);
 
 #endif // GENERATOR_FUNCTIONS_H
 

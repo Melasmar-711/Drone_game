@@ -8,17 +8,16 @@ bool is_paused=false;
 int main() {
 
 
-    
-    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server", O_WRONLY); 
-
 
 
     //Collect PIDs of the Running the processes 
+    
     pid_t server_pid=get_pidd("BlackBoardServer");
     pid_t GameWindow=get_pidd("GameWindow");
     pid_t DroneDynamicsManager=get_pidd("DroneDynamicsManager");
     pid_t Targets_Generator=get_pidd("Targets_Generator");
     pid_t Obstcales_Generator=get_pidd("Obstacle_Generator");
+    
 
 
 
@@ -27,6 +26,13 @@ int main() {
 
 
     init_ncurses();
+
+
+
+
+    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server_%d",0, O_WRONLY); 
+
+
 
 
     
@@ -68,7 +74,7 @@ int main() {
         }
 
         //sending the reset signal
-        if (input.quit==reset){
+        if (input.quit==Re_set){
 
             input.force_x=0;
             input.force_y=0;
@@ -76,8 +82,11 @@ int main() {
             kill(DroneDynamicsManager, SIGUSR2);
             kill(Obstcales_Generator, SIGUSR2);
             kill(Targets_Generator, SIGUSR2);
-            usleep(10000);
+            kill(GameWindow, SIGUSR2);
+
             input.quit=0;
+            
+            usleep(10000);
             
         }
 

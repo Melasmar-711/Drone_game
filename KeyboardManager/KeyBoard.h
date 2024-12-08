@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include<string.h>
 #include<signal.h>
+#include"shared.h"
 
 
 
@@ -19,7 +20,7 @@
 #define Pause_or_Continue 10
 #define stop  11
 #define Continue 12
-#define reset 20
+#define Re_set 20
 
 // Define the structure in a shared header file (e.g., `shared.h`)
 typedef struct {
@@ -35,7 +36,6 @@ void init_ncurses();
 void process_input(KeyboardInput *input);
 void draw_keyboard_layout(KeyboardInput *input) ;
 pid_t get_pidd(const char *program_name);
-int create_and_open_fifo(const char *fifo_name, int flags);
 
 
 #endif

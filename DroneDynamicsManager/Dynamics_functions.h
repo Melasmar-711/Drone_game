@@ -25,7 +25,6 @@ typedef struct {
 } Vector_2D;
 
 
-int create_and_open_fifo(const char *fifo_name, int flags);	
 Vector_2D compute_repulsion_forces(int input_x_force,int input_y_force,float drone_x, float drone_y, int num_obstacles, int obstacles[][2]) ;
 Vector_2D compute_viscosity_force(float velocity_x, float velocity_y);
 void enforce_geofence(ServerState *state);

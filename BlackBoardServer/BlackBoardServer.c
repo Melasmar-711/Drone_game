@@ -19,15 +19,31 @@ int main() {
     signal(SIGINT, handle_stop_signal);
 
 
+    
+    int fifo_id=0;
+    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server_%d",0, O_RDONLY|O_NONBLOCK);
+
+    
+start:
+
+    if (reset){
+
+        fifo_id++;
+        reset=false;
+        usleep(10000);
+
+    }
+
+
 
 
     // Create FIFOs
-    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_RDONLY|O_NONBLOCK);
-    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_WRONLY);
-    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow", O_WRONLY);
-    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server", O_RDONLY|O_NONBLOCK);
-    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server", O_RDONLY | O_NONBLOCK);
-    int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server", O_RDONLY | O_NONBLOCK);
+    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_WRONLY);
+    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_RDONLY|O_NONBLOCK);
+
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_WRONLY);
+    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
+    int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
 
 
 
@@ -60,14 +76,15 @@ int main() {
     KeyboardInput prev_input={0};
     KeyboardInput input={0};
 
+
+
+
     while (1) {
 
         bool new_obstacle_arrived = false;
 
 
-start:
 
-        reset =false;
 
         if (is_paused) {
 
@@ -201,19 +218,13 @@ start:
     }
     
     if (reset){
-        printf("i swear i am resseting");
+    
 
-        while (read(fd_Dynamics_to_server, &state, sizeof(ServerState)) > 0) { }
-
-        state.drone_x=10;
-        state.drone_y=7;
-        state.velocity_x=0;
-        state.velocity_y=0;
-        state.input_x_force=0;
-        state.input_y_force=0;
-        write(fd_server_to_Dynamics, &state, sizeof(ServerState));
-
-  
+        close(fd_Dynamics_to_server);
+        close(fd_server_to_Dynamics);
+        close(fd_server_to_GameWindow);
+        close(fd_target_generator_to_server);
+        close(fd_obstacle_generator_to_server);
         goto start;
 
     }

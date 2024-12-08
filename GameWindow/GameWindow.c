@@ -8,9 +8,22 @@ int main() {
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
+    int fifo_id=0;
+
+start:
 
 
-    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow", O_RDONLY );
+    if(reset){
+
+        clear();
+        fifo_id++;
+        reset=false;
+        usleep(10000);
+
+    }
+
+
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_RDONLY );
 
     
     // Server state
@@ -61,9 +74,12 @@ int main() {
         prev_state=state; 
 
 
-       // if(reset){
-         //   goto start;
-        //}
+        if(reset){
+            close(fd_server_to_GameWindow);
+            goto start;
+        }
+
+
         usleep(DELAY);
 
 

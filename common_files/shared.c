@@ -1,18 +1,26 @@
 #include"shared.h"
+#include<errno.h>
 
 
 
 
-int create_and_open_fifo(const char *fifo_name, int flags) {
-    mkfifo(fifo_name, 0666);
+int create_and_open_fifo(const char *template, int identifier, int flags) {
+    char fifo_name[256];
+    snprintf(fifo_name, sizeof(fifo_name), template, identifier);
+
+    if (mkfifo(fifo_name, 0666) < 0 && errno != EEXIST) {
+        perror("Failed to create FIFO");
+        exit(1);
+    }
+
     int fd = open(fifo_name, flags);
     if (fd < 0) {
         perror("Failed to open FIFO");
         exit(1);
     }
+
     return fd;
 }
-
 
 
 

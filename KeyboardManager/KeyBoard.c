@@ -2,17 +2,7 @@
 
 
 
-int create_and_open_fifo(const char *fifo_name, int flags) {
 
-    mkfifo(fifo_name, 0666);
-    int fd = open(fifo_name, flags);
-    if (fd < 0) {
-        perror("Failed to open FIFO");
-        exit(1);
-    }
-
-    return fd;
-}
 
 pid_t get_pidd(const char *program_name) {
     char line[256];
@@ -66,7 +56,7 @@ void process_input(KeyboardInput *input) {
         case 'c': input->force_x+= 1; input->force_y+= 1; break;
         case 'o': input->quit = stop; break; // Quit
         case 'p': input->quit=Pause_or_Continue;break;
-        case 'r':input->quit=reset;break;
+        case 'r':input->quit=Re_set;break;
 
         //case ERR :input->force_x = 0; input->force_y = 0; break;
         default: break;  

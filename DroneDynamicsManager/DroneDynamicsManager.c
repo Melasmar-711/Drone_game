@@ -11,11 +11,25 @@ int main() {
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
+    int fifo_id=0;
+
+
+start:
+
+
+    if(reset){
+        fifo_id++;
+        reset=false;
+        usleep(10000);
+    }
 
 
 
-    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_WRONLY);
-    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_RDONLY|O_NONBLOCK);
+
+
+    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_RDONLY|O_NONBLOCK);
+    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_WRONLY);
+
 
 
 
@@ -34,10 +48,7 @@ int main() {
 
 
 
-start:
 
-
-    reset=false;
 
     
     while (!stop) {
@@ -118,24 +129,8 @@ start:
 
         if (reset){
 
-
-
-            while (read(fd_server_to_Dynamics, &state, sizeof(ServerState)) > 0) { }
-
-            state.drone_x=10;
-            state.drone_y=7;
-            acceleration.x=0;
-            acceleration.y=0;
-            state.velocity_x=0;
-            state.velocity_y=0;
-            viscosity.x=0;
-            viscosity.y=0;
-            state.input_x_force=0;
-            state.input_y_force=0;
-            prev_state=state;
-
-            write(fd_Dynamics_to_server, &state, sizeof(ServerState));
-
+            close(fd_Dynamics_to_server);
+            close(fd_server_to_Dynamics);
             goto start;
             
         }
