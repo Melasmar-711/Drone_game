@@ -19,6 +19,7 @@
 #define Pause_or_Continue 10
 #define stop  11
 #define Continue 12
+#define reset 20
 
 // Define the structure in a shared header file (e.g., `shared.h`)
 typedef struct {

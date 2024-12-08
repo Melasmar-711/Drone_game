@@ -1,20 +1,14 @@
 #include "server_functions.h"
 
-int create_and_open_fifo(const char *fifo_name, int flags) {
-    mkfifo(fifo_name, 0666);
-    int fd = open(fifo_name, flags);
-    if (fd < 0) {
-        perror("Failed to open FIFO");
-        exit(1);
-    }
-    return fd;
-}
+
 
 long current_time_in_ms() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
+
+
 
 int get_max_fd(int fds[], int num_fds) {
     int max_fd = fds[0];
@@ -26,20 +20,6 @@ int get_max_fd(int fds[], int num_fds) {
     return max_fd;
 }
 
-ServerState initialize_server_state() {
-    return (ServerState){
-        .drone_x = 10,
-        .drone_y = 7,
-        .input_x_force = 0,
-        .input_y_force = 0,
-        .resultant_force_x = 0,
-        .resultant_force_y = 0,
-        .velocity_x = 0,
-        .velocity_y = 0,
-        .num_obstacles = MAX_OBSTACLES,
-        .num_targets = MAX_TARGETS,
-    };
-}
 
 void handle_keyboard_input(int fd, KeyboardInput *input, KeyboardInput *prev_input, ServerState *state) {
     ssize_t bytes_read = read(fd, input, sizeof(KeyboardInput));
@@ -69,10 +49,5 @@ void handle_dynamics_input(int fd, ServerState *state) {
     }
 }
 
-void close_pipes(int fd1, int fd2, int fd3, int fd4) {
-    close(fd1);
-    close(fd2);
-    close(fd3);
-    close(fd4);
-}
+
 

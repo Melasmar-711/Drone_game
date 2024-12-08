@@ -6,9 +6,10 @@ project(GameWindow)
 find_package(Curses REQUIRED)
 
 # Add executable
-add_executable(GameWindow GameWindow.c)
+add_executable(GameWindow GameWindow.c
+Window.c)
 
 # Link ncurses
-target_link_libraries(GameWindow ${CURSES_LIBRARIES} m shared)
+target_link_libraries(GameWindow ${CURSES_LIBRARIES} m shared signal_handlers)
 
 

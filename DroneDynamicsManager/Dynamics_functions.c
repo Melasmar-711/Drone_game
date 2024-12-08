@@ -10,17 +10,6 @@
 
 
 
-int create_and_open_fifo(const char *fifo_name, int flags) {
-    mkfifo(fifo_name, 0666);
-    int fd = open(fifo_name, flags);
-    if (fd < 0) {
-        perror("Failed to open FIFO");
-        exit(1);
-    }
-    return fd;
-}
-
-
 
 
 Vector_2D compute_repulsion_forces(int input_x_force,int input_y_force,float drone_x, float drone_y, int num_obstacles, int obstacles[][2]) {
@@ -66,3 +55,32 @@ Vector_2D compute_viscosity_force(float velocity_x, float velocity_y) {
     return viscosity;
 }
 
+
+
+
+void enforce_geofence(ServerState *state){
+            if (state->drone_x <= 1){ 
+            state->drone_x = 1;
+            state->velocity_x =0;
+            state->velocity_y=0;
+        
+        }
+        if (state->drone_x >= MAX_X-1){ 
+            state->drone_x = MAX_X-1;
+            state->velocity_x =0;
+            state->velocity_y=0;
+
+        }
+        if (state->drone_y <= 1) {
+            state->drone_y = 1;
+            state->velocity_y=0;
+            state->velocity_x =0;
+
+        }
+        if (state->drone_y >= MAX_Y){ 
+            state->drone_y = MAX_Y-1;
+            state->velocity_y=0;
+            state->velocity_x =0;
+            
+        }
+}

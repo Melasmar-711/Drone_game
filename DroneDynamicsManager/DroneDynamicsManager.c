@@ -9,6 +9,10 @@
 int main() {
 
     signal(SIGUSR1, handle_pause_signal);
+    signal(SIGUSR2, handle_reset_signal);
+    signal(SIGINT, handle_stop_signal);
+
+
 
     int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_WRONLY);
     int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_RDONLY|O_NONBLOCK);
@@ -22,22 +26,21 @@ int main() {
     fd_set read_fds;
     struct timeval timeout = {0, 0};
 
+  
+    ServerState prev_state = initialize_server_state();
+
+
+
+
+
+
+start:
+
+
+    reset=false;
+
     
-    ServerState prev_state = {
-        .drone_x = 10,
-        .drone_y = 7,
-        .input_x_force = 0,
-        .input_y_force = 0,
-        .resultant_force_x = 0,
-        .resultant_force_y = 0,
-        .velocity_x = 0,
-        .velocity_y = 0,
-        .num_obstacles = MAX_OBSTACLES,
-        .num_targets = MAX_TARGETS,
-    };
-
-
-    while (1) {
+    while (!stop) {
 
 
 
@@ -61,15 +64,17 @@ int main() {
 
         else 
         {
-            printf("here ");
-            fflush(stdout);
+            //printf("here ");
+            //fflush(stdout);
    
             //prev_state.input_x_force=0;
             //prev_state.input_y_force=0;
-            state=prev_state;
-        }
-        
 
+            //state=prev_state;
+        }
+
+        printf("%f\n",state.drone_x);
+        
 
         Vector_2D repulsion = compute_repulsion_forces(state.input_x_force,state.input_y_force,state.drone_x, state.drone_y, state.num_obstacles, state.obstacles);
         Vector_2D viscosity = compute_viscosity_force(state.velocity_x, state.velocity_y);
@@ -83,7 +88,7 @@ int main() {
 
         acceleration.x = (state.input_x_force + repulsion.x + viscosity.x) / DRONE_MASS;
         acceleration.y = (state.input_y_force + repulsion.y + viscosity.y) / DRONE_MASS;
-        //printf("acceleration %f %f\n",acceleration.x,acceleration.y);
+        printf("acceleration %f %f\n",acceleration.x,acceleration.y);
 
         velocity.x = state.velocity_x + acceleration.x * TIME_STEP;
         velocity.y = state.velocity_y + acceleration.y * TIME_STEP;
@@ -98,35 +103,43 @@ int main() {
         state.velocity_x = velocity.x;
         state.velocity_y = velocity.y;
         
-        if (state.drone_x <= 1){ 
-            state.drone_x = 1;
-            state.velocity_x =0;
-            state.velocity_y=0;
-        
-        }
-        if (state.drone_x >= MAX_X-1){ 
-            state.drone_x = MAX_X-1;
-            state.velocity_x =0;
-            state.velocity_y=0;
 
-        }
-        if (state.drone_y <= 1) {
-            state.drone_y = 1;
-            state.velocity_y=0;
-            state.velocity_x =0;
 
-        }
-        if (state.drone_y >= MAX_Y){ 
-            state.drone_y = MAX_Y-1;
-            state.velocity_y=0;
-            state.velocity_x =0;
-            
-        }
+        enforce_geofence(&state);
+
 
 
 
         write(fd_Dynamics_to_server, &state, sizeof(ServerState));
+
+
         prev_state=state;
+
+
+        if (reset){
+
+
+
+            while (read(fd_server_to_Dynamics, &state, sizeof(ServerState)) > 0) { }
+
+            state.drone_x=10;
+            state.drone_y=7;
+            acceleration.x=0;
+            acceleration.y=0;
+            state.velocity_x=0;
+            state.velocity_y=0;
+            viscosity.x=0;
+            viscosity.y=0;
+            state.input_x_force=0;
+            state.input_y_force=0;
+            prev_state=state;
+
+            write(fd_Dynamics_to_server, &state, sizeof(ServerState));
+
+            goto start;
+            
+        }
+
         usleep(1000000 / FRAME_RATE);
     }
 

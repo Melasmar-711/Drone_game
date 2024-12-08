@@ -1,7 +1,6 @@
+
+
 #include "server_functions.h"
-
-
-
 #include"sig_handle.h"
 
 
@@ -13,7 +12,13 @@
 
 int main() {
 
+
+    //registering the signals for Reset/continue/Pause
     signal(SIGUSR1, handle_pause_signal);
+    signal(SIGUSR2, handle_reset_signal);
+    signal(SIGINT, handle_stop_signal);
+
+
 
 
     // Create FIFOs
@@ -25,23 +30,8 @@ int main() {
     int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server", O_RDONLY | O_NONBLOCK);
 
 
-    // Server state
-    ServerState state = {
-        .drone_x = 10,
-        .drone_y = 7,
-        .input_x_force = 0,
-        .input_y_force = 0,
-        .resultant_force_x = 0,
-        .resultant_force_y = 0,
-        .velocity_x = 0,
-        .velocity_y = 0,
-        .num_obstacles = MAX_OBSTACLES,
-        .num_targets = MAX_TARGETS,
-    };
 
-    // Previous state to store valid obstacle and target values
-    // ServerState prev_state = state;
-
+    // setting up the necessary file descriptors for the select method
     fd_set read_fds;
     int fds[] = {fd_Dynamics_to_server, fd_Keyboard_to_server, fd_target_generator_to_server, fd_obstacle_generator_to_server};
     int max_rfd = get_max_fd(fds, 4);
@@ -51,13 +41,22 @@ int main() {
     int fds_w[] = {fd_server_to_GameWindow, fd_server_to_Dynamics};
     int max_wfd = get_max_fd(fds, 2);
 
-
+    //getting the max fd number between  the read and write
     int max_fd = max_rfd>max_wfd? max_rfd:max_wfd;
 
-    
 
+    //for the select timeout
     struct timeval timeout = {0, 0};
     long last_frame_time = current_time_in_ms();
+
+
+
+
+
+
+    // initialize a Server state
+    ServerState state = initialize_server_state() ;   
+
     KeyboardInput prev_input={0};
     KeyboardInput input={0};
 
@@ -65,8 +64,15 @@ int main() {
 
         bool new_obstacle_arrived = false;
 
+
+start:
+
+        reset =false;
+
         if (is_paused) {
+
             usleep(100000); // Sleep while paused to reduce CPU usage
+            
             continue;
         }
 
@@ -78,6 +84,8 @@ int main() {
             continue;
         }
         last_frame_time = current_time;
+
+
 
 
 
@@ -126,9 +134,7 @@ int main() {
                 // Copy data into state struct
                 memcpy(state.targets, new_targets, sizeof(new_targets));
                 state.num_targets = MAX_TARGETS;
-                //state.num_targets = sizeof(new_targets) / sizeof(new_targets[0]);
-                //printf("Updated targets received from Target Generator.\n");
-                //printf("Received %d targets:\n", state.num_targets);
+
             for (int i = 0; i < MAX_TARGETS; i++) {
                 printf("Target %d: (%d, %d)\n", i, state.targets[i][0], state.targets[i][1]);
             }
@@ -156,18 +162,14 @@ int main() {
 
 
         // Send updated state to GameWindow
-            if (FD_ISSET(fd_server_to_GameWindow, &write_fds)) {
+        if (FD_ISSET(fd_server_to_GameWindow, &write_fds)) {
 
                 write(fd_server_to_GameWindow, &state, sizeof(ServerState));
-                // for (int i = 0; i < MAX_OBSTACLES; i++) {
-                //     printf("Obstacle %d: (%d, %d)\n", i, state.obstacles[i][0], state.obstacles[i][1]);
-                // }
-                // for (int i = 0; i < MAX_TARGETS; i++) {
-                //     printf("Target %d: (%d, %d)\n", i, state.targets[i][0], state.targets[i][1]);
-                // }
+
             }
 
 
+        //write new forces to the drone dynamicss
         if (FD_ISSET(fd_server_to_Dynamics, &write_fds)) {
                 
 
@@ -197,7 +199,29 @@ int main() {
 
 
     }
+    
+    if (reset){
+        printf("i swear i am resseting");
+
+        while (read(fd_Dynamics_to_server, &state, sizeof(ServerState)) > 0) { }
+
+        state.drone_x=10;
+        state.drone_y=7;
+        state.velocity_x=0;
+        state.velocity_y=0;
+        state.input_x_force=0;
+        state.input_y_force=0;
+        write(fd_server_to_Dynamics, &state, sizeof(ServerState));
+
+  
+        goto start;
+
     }
+
+    }
+
+
+
 
     // Close pipes
     close(fd_Dynamics_to_server);

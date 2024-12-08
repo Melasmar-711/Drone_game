@@ -13,7 +13,7 @@ add_executable(KeyboardManager
 target_include_directories(KeyboardManager PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Link ncurses
-target_link_libraries(KeyboardManager ${CURSES_LIBRARIES} shared)
+target_link_libraries(KeyboardManager ${CURSES_LIBRARIES} shared signal_handlers)
 
 
 

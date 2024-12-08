@@ -66,6 +66,7 @@ void process_input(KeyboardInput *input) {
         case 'c': input->force_x+= 1; input->force_y+= 1; break;
         case 'o': input->quit = stop; break; // Quit
         case 'p': input->quit=Pause_or_Continue;break;
+        case 'r':input->quit=reset;break;
 
         //case ERR :input->force_x = 0; input->force_y = 0; break;
         default: break;  
