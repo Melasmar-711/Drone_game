@@ -1,3 +1,6 @@
+
+
+
 konsole -e ./build/BlackBoardServer/BlackBoardServer &
 konsole -e ./build/DroneDynamicsManager/DroneDynamicsManager &
 konsole -p 'TerminalColumns=400' -p 'TerminalRows=50' -geometry +60-60 -e  ./build/GameWindow/GameWindow &

@@ -14,14 +14,6 @@ int main() {
     int fifo_id=0;
 
 
-start:
-
-
-    if(reset){
-        fifo_id++;
-        reset=false;
-        usleep(10000);
-    }
 
 
 
@@ -54,6 +46,15 @@ start:
     while (!stop) {
 
 
+
+        if(reset){
+            fifo_id++;
+            reset=false;
+
+            int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_RDONLY|O_NONBLOCK);
+            int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_WRONLY);
+            usleep(10000);
+        }
 
         if (is_paused) {
             usleep(100000); // Sleep while paused to reduce CPU usage
@@ -131,7 +132,6 @@ start:
 
             close(fd_Dynamics_to_server);
             close(fd_server_to_Dynamics);
-            goto start;
             
         }
 

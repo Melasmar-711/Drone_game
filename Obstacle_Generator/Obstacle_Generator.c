@@ -11,15 +11,6 @@ int main() {
     signal(SIGINT, handle_stop_signal);
     int fifo_id=0;
 
-start:
-
-    if(reset){
-
-        fifo_id++;
-        reset=false;
-        usleep(10000);
-
-    }
 
     reset=false;  
 
@@ -33,6 +24,15 @@ start:
 
 
     while (!stop) {
+
+        if(reset){
+
+        fifo_id++;
+        int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server_%d",fifo_id, O_WRONLY);
+        reset=false;
+        usleep(10000);
+
+         }
 
 
         if (is_paused) {
@@ -65,7 +65,6 @@ start:
 
             if(reset){
                 close(fd_obstacle_generator_to_server);
-                goto start;
             } 
             else{  
                 sleep(1);

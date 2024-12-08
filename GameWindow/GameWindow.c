@@ -10,17 +10,10 @@ int main() {
     signal(SIGINT, handle_stop_signal);
     int fifo_id=0;
 
-start:
 
 
-    if(reset){
 
-        clear();
-        fifo_id++;
-        reset=false;
-        usleep(10000);
 
-    }
 
 
     int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_RDONLY );
@@ -56,6 +49,20 @@ start:
     while (!stop) {
 
 
+        if(reset){
+
+            clear();
+            fifo_id++;
+            int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_RDONLY );
+            draw_borders();
+            memset(target_active_flags, 0, sizeof(target_active_flags)); // Set all bytes of arr to 0
+
+            reset=false;
+            usleep(10000);
+
+        }
+
+
         if (is_paused) {
             usleep(100000); // Sleep while paused to reduce CPU usage
             continue;
@@ -76,7 +83,6 @@ start:
 
         if(reset){
             close(fd_server_to_GameWindow);
-            goto start;
         }
 
 
