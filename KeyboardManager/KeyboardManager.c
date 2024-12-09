@@ -80,9 +80,9 @@ int main() {
             input.force_y=0;
             kill(server_pid, SIGUSR2);
             kill(DroneDynamicsManager, SIGUSR2);
-            kill(Obstcales_Generator, SIGUSR2);
+            //kill(Obstcales_Generator, SIGUSR2);
             kill(Targets_Generator, SIGUSR2);
-            kill(GameWindow, SIGUSR2);
+            //kill(GameWindow, SIGUSR2);
 
             input.quit=0;
             

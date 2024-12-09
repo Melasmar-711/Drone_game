@@ -6,9 +6,8 @@ int main() {
     
     
     signal(SIGUSR1, handle_pause_signal);
-    signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
-    int fifo_id=0;
+    signal(SIGUSR2, handle_reset_signal);
 
 
 
@@ -16,7 +15,8 @@ int main() {
 
 
 
-    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_RDONLY );
+
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",0, O_RDONLY );
 
     
     // Server state
@@ -49,18 +49,6 @@ int main() {
     while (!stop) {
 
 
-        if(reset){
-
-            clear();
-            fifo_id++;
-            int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_RDONLY );
-            draw_borders();
-            memset(target_active_flags, 0, sizeof(target_active_flags)); // Set all bytes of arr to 0
-
-            reset=false;
-            usleep(10000);
-
-        }
 
 
         if (is_paused) {
@@ -81,12 +69,15 @@ int main() {
         prev_state=state; 
 
 
-        if(reset){
-            close(fd_server_to_GameWindow);
-        }
 
 
         usleep(DELAY);
+
+        if(reset){
+            
+            memset(target_active_flags, 0, sizeof(target_active_flags)); // Set all bytes of arr to 0
+            usleep(100000);
+        }
 
 
 

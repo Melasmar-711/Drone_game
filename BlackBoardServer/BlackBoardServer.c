@@ -22,18 +22,7 @@ int main() {
     
     int fifo_id=0;
     int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server_%d",0, O_RDONLY|O_NONBLOCK);
-
-    
-
-
-    if (reset){
-
-        fifo_id++;
-        reset=false;
-        usleep(10000);;;
-
-    }
-
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_WRONLY);
 
 
 
@@ -41,7 +30,6 @@ int main() {
     int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_WRONLY);
     int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_RDONLY|O_NONBLOCK);
 
-    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_WRONLY);
     int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
     int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
 
@@ -75,43 +63,18 @@ int main() {
 
     KeyboardInput prev_input={0};
     KeyboardInput input={0};
+    int new_targets[MAX_TARGETS][2];
 
+    int new_obstacles[MAX_OBSTACLES][2];
 
 
 
     while (1) {
 
 
-        if (reset){
-            fifo_id++;
-            // Create FIFOs
-            int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_WRONLY);
-            int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_RDONLY|O_NONBLOCK);
-
-            int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_WRONLY);
-            int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
-            int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
-                // initialize a Server state
-            ServerState state = initialize_server_state() ;   
-
-            KeyboardInput prev_input={0};
-            KeyboardInput input={0};
-
-            // setting up the necessary file descriptors for the select method
-            fd_set read_fds;
-            int fds[] = {fd_Dynamics_to_server, fd_Keyboard_to_server, fd_target_generator_to_server, fd_obstacle_generator_to_server};
-            int max_rfd = get_max_fd(fds, 4);
 
 
-            fd_set write_fds;
-            int fds_w[] = {fd_server_to_GameWindow, fd_server_to_Dynamics};
-            int max_wfd = get_max_fd(fds, 2);
 
-            //getting the max fd number between  the read and write
-            int max_fd = max_rfd>max_wfd? max_rfd:max_wfd;
-
-            reset=false;
-        }
 
         bool new_obstacle_arrived = false;
 
@@ -133,6 +96,8 @@ int main() {
             continue;
         }
         last_frame_time = current_time;
+
+
 
 
 
@@ -177,7 +142,7 @@ int main() {
 
         // Handle input from Target Generator
         if (FD_ISSET(fd_target_generator_to_server, &read_fds)) {
-            int new_targets[MAX_TARGETS][2];
+            
             ssize_t bytes_read = read(fd_target_generator_to_server, new_targets, sizeof(new_targets));
             if (bytes_read == sizeof(new_targets)) {
                 // Copy data into state struct
@@ -192,7 +157,6 @@ int main() {
         
         // Handle input from Obstacle Generator
         if (FD_ISSET(fd_obstacle_generator_to_server, &read_fds)) {
-            int new_obstacles[MAX_OBSTACLES][2];
             ssize_t bytes_read = read(fd_obstacle_generator_to_server, new_obstacles, sizeof(new_obstacles));
             if (bytes_read == sizeof(new_obstacles)) {
                 // Copy data into state struct
@@ -247,18 +211,30 @@ int main() {
             }   
 
 
-    }
-    
+
     if (reset){
-    
 
-        close(fd_Dynamics_to_server);
-        close(fd_server_to_Dynamics);
-        close(fd_server_to_GameWindow);
-        close(fd_target_generator_to_server);
-        close(fd_obstacle_generator_to_server);
+            
+                
+            // initialize a Server state
+            state = initialize_server_state() ;
+            memcpy(state.obstacles, new_obstacles, sizeof(new_obstacles));
+            memcpy(state.targets, new_targets, sizeof(new_targets));
+            state.num_obstacles = MAX_OBSTACLES;
+            state.num_targets = MAX_TARGETS;
+            prev_input.force_x=0;
+            prev_input.force_y=0;
+            input.force_y=0;
+            input.force_x=0;
+            reset=false;
+
+        }
+
+
 
     }
+    
+
 
     }
 

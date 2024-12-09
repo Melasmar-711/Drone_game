@@ -14,11 +14,6 @@ int main() {
     int fifo_id=0;
 
 
-
-
-
-
-
     int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_RDONLY|O_NONBLOCK);
     int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_WRONLY);
 
@@ -48,11 +43,12 @@ int main() {
 
 
         if(reset){
-            fifo_id++;
+            
             reset=false;
 
-            int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_RDONLY|O_NONBLOCK);
-            int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_WRONLY);
+            state=initialize_server_state();
+            prev_state = initialize_server_state();
+
             usleep(10000);
         }
 
@@ -82,7 +78,7 @@ int main() {
             //prev_state.input_x_force=0;
             //prev_state.input_y_force=0;
 
-            //state=prev_state;
+            state=prev_state;
         }
 
         printf("%f\n",state.drone_x);
@@ -126,14 +122,6 @@ int main() {
 
 
         prev_state=state;
-
-
-        if (reset){
-
-            close(fd_Dynamics_to_server);
-            close(fd_server_to_Dynamics);
-            
-        }
 
         usleep(1000000 / FRAME_RATE);
     }

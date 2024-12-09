@@ -7,8 +7,9 @@ int main() {
 
     
     signal(SIGUSR1, handle_pause_signal);
-    signal(SIGUSR2, handle_reset_signal);
+    //signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
+    
     int fifo_id=0;
 
 
@@ -25,14 +26,8 @@ int main() {
 
     while (!stop) {
 
-        if(reset){
 
-        fifo_id++;
-        int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server_%d",fifo_id, O_WRONLY);
-        reset=false;
-        usleep(10000);
 
-         }
 
 
         if (is_paused) {
@@ -51,7 +46,9 @@ int main() {
 
         // Send the obstacles array to the server
         ssize_t bytes_written = write(fd_obstacle_generator_to_server, obstacles, sizeof(obstacles));
-        if (bytes_written == -1) {
+
+        if (bytes_written == -1) 
+        {
             perror("Error writing to FIFO");
             close(fd_obstacle_generator_to_server);
             return 1;
@@ -61,15 +58,9 @@ int main() {
 
         
         // Wait before generating new obstacles
-        for(int i=0;i<10;i++){
-
-            if(reset){
-                close(fd_obstacle_generator_to_server);
-            } 
-            else{  
+        for(int i=0;i<10;i++)
+        {
                 sleep(1);
-            }
-
         }
 
     }
