@@ -27,7 +27,7 @@ int main() {
 
 
 
-        reset=false;
+
 
         if (is_paused) {
             usleep(100000); // Sleep while paused to reduce CPU usage
@@ -60,6 +60,7 @@ int main() {
         for(int i=0;i<10;i++)
         {
             if(reset){
+                reset=false;
                 break;
             }
                 sleep(1);

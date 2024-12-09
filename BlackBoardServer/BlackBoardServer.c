@@ -214,7 +214,8 @@ int main() {
     if (reset){
 
             
-                
+            while (read(fd_Dynamics_to_server, &state, sizeof(ServerState))>0){}
+            
             // initialize a Server state
             state = initialize_server_state() ;
             memcpy(state.obstacles, new_obstacles, sizeof(new_obstacles));

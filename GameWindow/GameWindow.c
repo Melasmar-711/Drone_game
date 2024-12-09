@@ -50,9 +50,6 @@ int main() {
 
 
 
-        reset=false;
-
-
         if (is_paused) {
             usleep(100000); // Sleep while paused to reduce CPU usage
             continue;
@@ -76,7 +73,7 @@ int main() {
         usleep(DELAY);
 
         if(reset){
-            
+            reset=false;
             memset(target_active_flags, 0, sizeof(target_active_flags)); // Set all bytes of arr to 0
             usleep(100000);
         }

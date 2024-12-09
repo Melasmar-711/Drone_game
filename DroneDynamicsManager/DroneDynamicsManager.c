@@ -42,6 +42,7 @@ int main() {
 
 
         if(reset){
+            while (read(fd_server_to_Dynamics, &state, sizeof(ServerState))>0){}
             
             reset=false;
 

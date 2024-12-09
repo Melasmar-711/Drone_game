@@ -33,7 +33,7 @@ int main() {
 
 
 
-        reset=false;
+
         
         usleep(10000);
         
@@ -57,7 +57,10 @@ int main() {
 
         while(!reset & !stop ){}
         
-
+	if (reset){
+	  reset=false;
+	}
+	
         if(stop){
             return 0;
         }
