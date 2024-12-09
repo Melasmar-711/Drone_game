@@ -22,6 +22,16 @@ int create_and_open_fifo(const char *fifo_name,int flags) {
 }
 
 
+void unlink_fifo(const char *template, int identifier) {
+    char fifo_name[256];
+    snprintf(fifo_name, sizeof(fifo_name), template, identifier);
+
+    if (unlink(fifo_name) < 0) {
+        perror("Failed to unlink FIFO");
+    } else {
+        printf("FIFO %s successfully unlinked.\n", fifo_name);
+    }
+}
 
 ServerState initialize_server_state() {
     return (ServerState){

@@ -190,7 +190,12 @@ int main() {
 
             printf("i am sending to the dynamics now %d %d \n",state.input_x_force,state.input_y_force);
 
-            write(fd_server_to_Dynamics, &state, sizeof(ServerState));
+            if(!reset){
+                
+                write(fd_server_to_Dynamics, &state, sizeof(ServerState));
+
+            }
+
             new_obstacle_arrived = false;
             prev_input=input;
             }
