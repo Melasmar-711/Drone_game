@@ -4,9 +4,8 @@
 
 
 
-int create_and_open_fifo(const char *template, int identifier, int flags) {
-    char fifo_name[256];
-    snprintf(fifo_name, sizeof(fifo_name), template, identifier);
+int create_and_open_fifo(const char *fifo_name,int flags) {
+
 
     if (mkfifo(fifo_name, 0666) < 0 && errno != EEXIST) {
         perror("Failed to create FIFO");

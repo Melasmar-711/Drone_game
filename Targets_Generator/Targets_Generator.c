@@ -5,6 +5,12 @@
 
 int main() {
 
+
+
+
+    // Seed random number generator
+    srand(time(NULL) + 1);
+
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
 
@@ -14,8 +20,12 @@ int main() {
 
     // Create FIFO
 
-    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d",fifo_id, O_WRONLY);
+    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server", O_WRONLY);
 
+
+
+    int num_targets = MAX_TARGETS; 
+    int targets[MAX_TARGETS][2];
 
 
     while (1)
@@ -27,18 +37,6 @@ int main() {
         
         usleep(10000);
         
-
-
-        // Seed random number generator
-        srand(time(NULL) + 1);
-
-
-        int num_targets = MAX_TARGETS; 
-        int targets[MAX_TARGETS][2];
-
-
-
-
 
         // Generate random targets within specified boundaries
         for (int i = 0; i < num_targets; i++) {

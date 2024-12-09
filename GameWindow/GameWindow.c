@@ -16,7 +16,7 @@ int main() {
 
 
 
-    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",0, O_RDONLY );
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow", O_RDONLY );
 
     
     // Server state
@@ -49,6 +49,8 @@ int main() {
     while (!stop) {
 
 
+
+        reset=false;
 
 
         if (is_paused) {

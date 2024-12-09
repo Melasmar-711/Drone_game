@@ -50,21 +50,23 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
         attroff(COLOR_PAIR(1));
     }
 
-    // Handle obstacles
-    for (int i = 0; i < MAX_OBSTACLES; i++) 
-    {
+    for (int i = 0; i < MAX_OBSTACLES; i++) {
+        if (current_state->obstacles[i][0] == 0 && current_state->obstacles[i][1] == 0) {
+            // Use previous state values if current values are zero
+            current_state->obstacles[i][0] = prev_state->obstacles[i][0];
+            current_state->obstacles[i][1] = prev_state->obstacles[i][1];
+        }
+
+        // Erase old obstacle position before drawing a new one
+        if (prev_state->obstacles[i][0] != current_state->obstacles[i][0] || prev_state->obstacles[i][1] != current_state->obstacles[i][1]) {
+            mvprintw(prev_state->obstacles[i][1], prev_state->obstacles[i][0], " ");
+        }
 
         attron(COLOR_PAIR(3));
-            // Check if an obstacle moved
-        if (prev_state->obstacles[i][0] != current_state->obstacles[i][0] ||
-                prev_state->obstacles[i][1] != current_state->obstacles[i][1]) 
-            {
-                mvprintw(prev_state->obstacles[i][1], prev_state->obstacles[i][0], " "); // Erase old position
-                mvprintw(current_state->obstacles[i][1], current_state->obstacles[i][0], "O"); // Draw new position
-            }
+        // Draw the new obstacle position
+        mvprintw(current_state->obstacles[i][1], current_state->obstacles[i][0], "O");
         attroff(COLOR_PAIR(3));
     }
-
 
     
     // Handle targets

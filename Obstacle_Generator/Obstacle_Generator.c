@@ -7,10 +7,9 @@ int main() {
 
     
     signal(SIGUSR1, handle_pause_signal);
-    //signal(SIGUSR2, handle_reset_signal);
+    signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
     
-    int fifo_id=0;
 
 
     reset=false;  
@@ -19,7 +18,7 @@ int main() {
     srand(time(NULL) + 2);
 
     // Create FIFO
-    int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server_%d",fifo_id, O_WRONLY);
+    int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server", O_WRONLY);
     int num_obstacles = MAX_OBSTACLES; 
     int obstacles[MAX_OBSTACLES][2];
 
@@ -28,7 +27,7 @@ int main() {
 
 
 
-
+        reset=false;
 
         if (is_paused) {
             usleep(100000); // Sleep while paused to reduce CPU usage
@@ -60,6 +59,9 @@ int main() {
         // Wait before generating new obstacles
         for(int i=0;i<10;i++)
         {
+            if(reset){
+                break;
+            }
                 sleep(1);
         }
 

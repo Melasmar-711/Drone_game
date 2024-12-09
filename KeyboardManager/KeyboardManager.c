@@ -30,7 +30,7 @@ int main() {
 
 
 
-    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server_%d",0, O_WRONLY); 
+    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server", O_WRONLY); 
 
 
 

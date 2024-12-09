@@ -11,11 +11,10 @@ int main() {
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
-    int fifo_id=0;
 
 
-    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_RDONLY|O_NONBLOCK);
-    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_WRONLY);
+    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics", O_RDONLY|O_NONBLOCK);
+    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server",O_WRONLY);
 
 
 

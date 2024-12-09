@@ -41,7 +41,7 @@ typedef struct {
 
 
 
-int create_and_open_fifo(const char *template, int identifier, int flags);
+int create_and_open_fifo(const char *fifo_name,int flags) ;
 ServerState initialize_server_state() ;
 
 

@@ -19,19 +19,18 @@ int main() {
     signal(SIGINT, handle_stop_signal);
 
 
-    
-    int fifo_id=0;
-    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server_%d",0, O_RDONLY|O_NONBLOCK);
-    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_WRONLY);
+
+    int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server", O_RDONLY|O_NONBLOCK);
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow", O_WRONLY);
 
 
 
     // Create FIFOs
-    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics_%d",fifo_id, O_WRONLY);
-    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server_%d",fifo_id, O_RDONLY|O_NONBLOCK);
+    int fd_server_to_Dynamics = create_and_open_fifo("/tmp/server_to_DroneDynamics",O_WRONLY);
+    int fd_Dynamics_to_server = create_and_open_fifo("/tmp/DroneDynamics_to_server", O_RDONLY|O_NONBLOCK);
 
-    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
-    int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server_%d",fifo_id, O_RDONLY | O_NONBLOCK);
+    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server", O_RDONLY );
+    int fd_obstacle_generator_to_server = create_and_open_fifo("/tmp/obstacle_generator_to_server", O_RDONLY | O_NONBLOCK);
 
 
 
