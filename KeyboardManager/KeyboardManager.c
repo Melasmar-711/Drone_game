@@ -1,5 +1,6 @@
 
 #include"KeyBoard.h"
+#include"logger.h"
 
 
 
@@ -8,7 +9,7 @@ bool is_paused=false;
 int main() {
 
 
-
+    char* log_file = "../Logs/KeyBoard.log";
 
     //Collect PIDs of the Running the processes 
     
@@ -17,15 +18,18 @@ int main() {
     pid_t DroneDynamicsManager=get_pidd("DroneDynamicsManager");
     pid_t Targets_Generator=get_pidd("Targets_Generator");
     pid_t Obstcales_Generator=get_pidd("Obstacle_Generator");
+
+
+
     
-
-
 
 
     KeyboardInput input = {0, 0, 0}, prev_input = {0, 0, 0}; // initialize the structure of inputs
 
 
     init_ncurses();
+
+    log_message(log_file, INFO, "KeyboardManager started.");
 
 
 
@@ -96,11 +100,14 @@ int main() {
         prev_input = input;
 
         refresh();
+
+        log_message(log_file, INFO, "KeyboardManager running.");
         usleep(DELAY); // Control the frame rate
     }
 
     endwin();
     close(fd_Keyboard_to_server);
+    log_message(log_file, INFO, "KeyboardManager shutting down.");
     
     return 0;
 

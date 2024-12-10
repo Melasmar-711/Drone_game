@@ -4,31 +4,7 @@
 
 
 
-pid_t get_pidd(const char *program_name) {
-    char line[256];
-    // Construct the command to get the PID of the process
-    char command[256];
-    snprintf(command, sizeof(command), "pidof %s", program_name);
 
-    // Open the command for reading
-    FILE *cmd = popen(command, "r");
-    if (cmd == NULL) {
-        perror("Failed to run pidof");
-        return -1;
-    }
-
-    // Read the output (the PID) from the command
-    if (fgets(line, 256, cmd) != NULL) {
-        // Convert the string to pid_t (unsigned long) and return the PID
-        pid_t pid = strtoul(line, NULL, 10);
-        pclose(cmd);
-        return pid;
-    } else {
-        // If no output (process not found), close and return -1
-        pclose(cmd);
-        return -1;
-    }
-}
 
 
 void init_ncurses() {

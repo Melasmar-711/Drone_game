@@ -1,29 +1,40 @@
 #include"Window.h"
 #include"sig_handle.h"
+#include"logger.h"
+#include<sys/select.h>
+
+
 
 
 int main() {
     
-    
+    char*   log_file = "../Logs/GameWindow.log";  
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
     int fifo_id=0;
+    fd_set read_fds;
+    struct timeval timeout = {0, 0};
+
+    log_message(log_file, INFO, "GameWindow started successfully.");
 
 start:
 
 
     if(reset){
 
+        just_got_reset=true;
+
         clear();
         fifo_id++;
         reset=false;
+        log_message(log_file, INFO, "GameWindow reset.");
         usleep(10000);
 
     }
 
 
-    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_RDONLY );
+    int fd_server_to_GameWindow = create_and_open_fifo("/tmp/server_to_GameWindow_%d",fifo_id, O_RDONLY|O_NONBLOCK);
 
     
     // Server state
@@ -57,6 +68,7 @@ start:
 
 
         if (is_paused) {
+            log_message(log_file, INFO, "GameWindow paused.");
             usleep(100000); // Sleep while paused to reduce CPU usage
             continue;
         }
@@ -65,6 +77,13 @@ start:
 
         ssize_t bytes_read = read(fd_server_to_GameWindow, &state, sizeof(ServerState));
 
+        if(bytes_read!=sizeof(ServerState)){
+            log_message(log_file, ERROR, "Failed to read the correct number of bytes from server.");
+            state=prev_state;
+            
+            continue;
+        }
+
         
     
         draw_simulation(&prev_state,&state,target_active_flags);
@@ -72,6 +91,7 @@ start:
         refresh();
 
         prev_state=state; 
+        log_message(log_file, INFO, "GameWindow running.");
 
 
         if(reset){

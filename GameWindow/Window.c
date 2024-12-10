@@ -2,6 +2,9 @@
 #include"Window.h"
 
 
+bool just_got_reset=false;
+
+
 
 void init_ncurses() {
     initscr();
@@ -73,6 +76,12 @@ void draw_simulation(ServerState *prev_state, ServerState *current_state,int *fl
 
         static int prev_flags[MAX_TARGETS] = {0};
         static int score = 0;
+
+        if(just_got_reset){
+            score=0;
+            memcpy(prev_flags, flags, sizeof(prev_flags));
+            just_got_reset=false;
+        }
 
         int dx = current_state->drone_x - current_state->targets[i][0];
         int dy = current_state->drone_y - current_state->targets[i][1];

@@ -44,6 +44,7 @@ typedef struct {
 int create_and_open_fifo(const char *template, int identifier, int flags);
 void unlink_fifo(const char *template, int identifier);
 ServerState initialize_server_state() ;
+pid_t get_pidd(const char *program_name) ;
 
 
 #endif

@@ -1,19 +1,23 @@
 #include "Generator_functions.h"
 #include "sig_handle.h"
-
+#include"logger.h"
 
 
 int main() {
 
+
+    char* log_file = "../Logs/TargetsGenerator.log";
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
+
+    log_message(log_file, INFO, "TargetsGenerator started successfully.");
 
     int fifo_id=0;
 
 start:
 
     if(reset){
-
+        log_message(log_file, INFO, "TargetsGenerator reset.");
         fifo_id++;
         reset=false;
         usleep(10000);
@@ -51,7 +55,11 @@ start:
     printf("Generated and sent %d targets.\n", num_targets);
 
 
-    while(!reset & !stop ){}
+    while(!reset & !stop ){
+
+        log_message(log_file, INFO, "TargetsGenerator running.");
+        usleep(1000000/FRAME_RATE);
+    }
     
     if(reset)
     {
@@ -59,6 +67,7 @@ start:
         goto start ;
     }
 
+    log_message(log_file, INFO, "TargetsGenerator shutting down.");
     close(fd_target_generator_to_server);
     return 0;
 }

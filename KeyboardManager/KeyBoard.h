@@ -35,7 +35,6 @@ typedef struct {
 void init_ncurses();
 void process_input(KeyboardInput *input);
 void draw_keyboard_layout(KeyboardInput *input) ;
-pid_t get_pidd(const char *program_name);
 
 
 #endif

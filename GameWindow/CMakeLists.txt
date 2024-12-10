@@ -10,6 +10,6 @@ add_executable(GameWindow GameWindow.c
 Window.c)
 
 # Link ncurses
-target_link_libraries(GameWindow ${CURSES_LIBRARIES} m shared signal_handlers)
+target_link_libraries(GameWindow ${CURSES_LIBRARIES} m shared signal_handlers logger)
 
 

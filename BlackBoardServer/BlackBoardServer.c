@@ -2,17 +2,17 @@
 
 #include "server_functions.h"
 #include"sig_handle.h"
-
-
-
-
-
+#include"logger.h"
 
 
 
 int main() {
+    
 
 
+    char* log_file = "../Logs/BlackBoardServer.log";
+
+    log_message(log_file, INFO, "BlackBoardServer started successfully.");
     //registering the signals for Reset/continue/Pause
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
@@ -27,6 +27,8 @@ int main() {
 start:
 
     if (reset){
+
+        log_message(log_file, INFO, "BlackBoardServer reset.");
 
         fifo_id++;
         reset=false;
@@ -89,9 +91,14 @@ start:
         if (is_paused) {
 
             usleep(100000); // Sleep while paused to reduce CPU usage
+            log_message(log_file, INFO, "BlackBoardServer paused.");
             
             continue;
         }
+
+        log_message(log_file, INFO, "BlackBoardServer running.");
+
+
 
         long current_time = current_time_in_ms();
         if (current_time - last_frame_time < 1000 / FRAME_RATE) {
@@ -100,10 +107,8 @@ start:
             usleep(1000); // Sleep for 1ms if we're ahead of the frame rate
             continue;
         }
+
         last_frame_time = current_time;
-
-
-
 
 
         FD_ZERO(&read_fds);
@@ -236,6 +241,8 @@ start:
 
     }
 
+
+    log_message(log_file, INFO, "BlackBoardServer shutting down.");
 
 
 

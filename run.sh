@@ -6,6 +6,15 @@ if [ -e "blackboard_pipe" ]; then
     rm blackboard_pipe
 fi
 
+# Define the log directory (update the path if necessary)
+LOG_DIR="logs"  # Assuming your log files are in a directory called "logs"
+
+# Clean up log files (delete all .log files in the logs directory)
+if [ -d "$LOG_DIR" ]; then
+    echo "Cleaning up existing log files in $LOG_DIR..."
+    rm -f "$LOG_DIR"/*.log  # Remove all .log files in the logs folder
+fi
+
 # Define the build directory
 BUILD_DIR="build"
 
@@ -33,10 +42,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
+# Start the processes (you can specify paths for log files or they will be generated later)
 gnome-terminal -- ./BlackBoardServer/BlackBoardServer &
 gnome-terminal -- ./DroneDynamicsManager/DroneDynamicsManager &
 gnome-terminal --geometry=110x40 -- bash -c "./GameWindow/GameWindow; exec bash" &
 gnome-terminal -- ./KeyboardManager/KeyboardManager &
 gnome-terminal -- ./Targets_Generator/Targets_Generator &
 gnome-terminal -- ./Obstacle_Generator/Obstacle_Generator &
+gnome-terminal -- ./WatchDog/WatchDog &
+

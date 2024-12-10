@@ -1,20 +1,23 @@
 #include "Generator_functions.h"
 #include "sig_handle.h"
-
+#include"logger.h"
 
 
 int main() {
 
-    
+    char* log_file = "../Logs/ObstacleGenerator.log";
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
     int fifo_id=0;
 
+    log_message(log_file, INFO, "ObstacleGenerator started successfully.");
+
 start:
 
     if(reset){
 
+        log_message(log_file, INFO, "ObstacleGenerator reset.");
         fifo_id++;
         reset=false;
         usleep(10000);
@@ -61,14 +64,15 @@ start:
 
         
         // Wait before generating new obstacles
-        for(int i=0;i<10;i++){
+        for(int i=0;i<20;i++){
 
             if(reset){
                 close(fd_obstacle_generator_to_server);
                 goto start;
             } 
             else{  
-                sleep(1);
+                log_message(log_file, INFO, "ObstacleGenerator running.");
+                usleep(500000);
             }
 
         }

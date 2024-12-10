@@ -6,7 +6,7 @@
 
 
 
-
+extern bool just_got_reset;
 
 
 

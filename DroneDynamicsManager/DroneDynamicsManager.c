@@ -1,6 +1,6 @@
 #include "Dynamics_functions.h"
 #include "sig_handle.h"
-
+#include"logger.h"
 
 
 
@@ -8,16 +8,23 @@
 
 int main() {
 
+
+    char *log_file = "../Logs/DroneDynamicsManager.log";
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
     int fifo_id=0;
 
 
+
+    log_message(log_file, INFO, "DroneDynamicsManager started successfully.");
+
 start:
 
 
     if(reset){
+
+        log_message(log_file, INFO, "DroneDynamicsManager reset.");
         fifo_id++;
         reset=false;
         usleep(10000);
@@ -56,6 +63,8 @@ start:
 
 
         if (is_paused) {
+
+            log_message(log_file, INFO, "DroneDynamicsManager paused.");
             usleep(100000); // Sleep while paused to reduce CPU usage
             continue;
         }
@@ -125,7 +134,7 @@ start:
 
 
         prev_state=state;
-
+        log_message(log_file, INFO, "DroneDynamicsManager running.");
 
         if (reset){
 
