@@ -1,5 +1,6 @@
 
 
+find_library(CJSON_LIB cjson REQUIRED)
 add_executable(BlackBoardServer
     BlackBoardServer.c
     server_functions.c
@@ -8,6 +9,7 @@ add_executable(BlackBoardServer
 
 target_include_directories(BlackBoardServer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+
 # Link libraries if necessary
-target_link_libraries(BlackBoardServer m shared signal_handlers logger)
+target_link_libraries(BlackBoardServer m shared signal_handlers logger ${CJSON_LIB})
 

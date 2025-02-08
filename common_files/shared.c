@@ -4,6 +4,8 @@
 
 
 
+
+
 int create_and_open_fifo(const char *template, int identifier, int flags) {
     char fifo_name[256];
     snprintf(fifo_name, sizeof(fifo_name), template, identifier);
@@ -76,3 +78,5 @@ pid_t get_pidd(const char *program_name) {
         return -1;
     }
 }
+
+

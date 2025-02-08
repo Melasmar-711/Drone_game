@@ -42,12 +42,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+
 # Start the processes (you can specify paths for log files or they will be generated later)
 gnome-terminal -- ./BlackBoardServer/BlackBoardServer &
 gnome-terminal -- ./DroneDynamicsManager/DroneDynamicsManager &
-gnome-terminal --geometry=110x40 -- bash -c "./GameWindow/GameWindow; exec bash" &
+gnome-terminal --geometry=110x40+0+0 -- bash -c "./GameWindow/GameWindow; exec bash" &
 gnome-terminal -- ./KeyboardManager/KeyboardManager &
 gnome-terminal -- ./Targets_Generator/Targets_Generator &
 gnome-terminal -- ./Obstacle_Generator/Obstacle_Generator &
+
+sleep 2
 gnome-terminal -- ./WatchDog/WatchDog &
 

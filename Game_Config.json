@@ -1,0 +1,12 @@
+{
+    "MAX_OBSTACLES":10,
+    "MAX_TARGETS":10,
+    "MAX_X":100,
+    "MAX_Y":30,
+    "FRAME_RATE":30,
+    "version": 1.0,
+    "enabled": true
+}
+
+
+
