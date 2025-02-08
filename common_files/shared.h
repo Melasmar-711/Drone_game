@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cjson/cJSON.h>
+
 
 
 
@@ -15,8 +17,8 @@
 
 #define MAX_OBSTACLES 10
 #define MAX_TARGETS 10
-#define MAX_X 100
-#define MAX_Y 30
+//#define MAX_X 100
+//#define MAX_Y 30
 #define FRAME_RATE 30
 
 
@@ -43,6 +45,7 @@ int create_and_open_fifo(const char *template, int identifier, int flags);
 void unlink_fifo(const char *template, int identifier);
 ServerState initialize_server_state() ;
 pid_t get_pidd(const char *program_name) ;
+int get_int_from_json(const char *filename, const char *key, int *value) ;
 
 
 #endif

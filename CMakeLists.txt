@@ -12,12 +12,16 @@ add_library(shared common_files/shared.c)
 add_library(signal_handlers common_files/sig_handle.c)
 add_library(logger common_files/logger.c)
 
+find_package(cJSON REQUIRED)
 
 
 # Include directories for the shared library
 target_include_directories(shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common_files)
 target_include_directories(signal_handlers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common_files)
 target_include_directories(logger PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common_files)
+
+
+target_link_libraries(shared  cjson)
 
 # Add subdirectories for each module
 add_subdirectory(KeyboardManager)

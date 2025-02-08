@@ -3,7 +3,9 @@
 #include"logger.h"
 
 
-
+int MAX_X=100;
+int MAX_Y=30;
+int fps_value;
 
 
 int main() {
@@ -17,6 +19,11 @@ int main() {
 
 
 
+    get_int_from_json("../Game_Config.json", "MAX_X", &MAX_X);
+    get_int_from_json("../Game_Config.json", "MAX_Y", &MAX_Y);
+
+
+
     log_message(log_file, INFO, "DroneDynamicsManager started successfully.");
 
 start:
@@ -24,6 +31,10 @@ start:
 
     if(reset){
 
+
+        get_int_from_json("../Game_Config.json", "MAX_X", &MAX_X);
+        get_int_from_json("../Game_Config.json", "MAX_Y", &MAX_Y);
+        get_int_from_json("../Game_Config.json", "FPS", &fps_value);
         log_message(log_file, INFO, "DroneDynamicsManager reset.");
         fifo_id++;
         reset=false;
@@ -61,6 +72,11 @@ start:
     while (!stop) {
 
 
+
+    
+
+    // Retrieve the FPS value
+    get_int_from_json("../Game_Config.json", "FPS", &fps_value);
 
         if (is_paused) {
 
@@ -125,7 +141,7 @@ start:
         
 
 
-        enforce_geofence(&state);
+        enforce_geofence(&state,MAX_X,MAX_Y);
 
 
 
@@ -144,7 +160,7 @@ start:
             
         }
 
-        usleep(1000000 / FRAME_RATE);
+        usleep(1000000 / fps_value);
     }
 
     close(fd_Dynamics_to_server);

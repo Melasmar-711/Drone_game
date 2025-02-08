@@ -8,10 +8,6 @@
 
 
 
-
-
-
-
 Vector_2D compute_repulsion_forces(int input_x_force,int input_y_force,float drone_x, float drone_y, int num_obstacles, int obstacles[][2]) {
     Vector_2D rep_force = {0, 0};
 
@@ -58,7 +54,7 @@ Vector_2D compute_viscosity_force(float velocity_x, float velocity_y) {
 
 
 
-void enforce_geofence(ServerState *state){
+void enforce_geofence(ServerState *state,int MAX_X,int MAX_Y){
             if (state->drone_x <= 1){ 
             state->drone_x = 1;
             state->velocity_x =0;

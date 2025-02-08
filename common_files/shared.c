@@ -79,4 +79,66 @@ pid_t get_pidd(const char *program_name) {
     }
 }
 
+int get_int_from_json(const char *filename, const char *key, int *value) {
+    // Open the file
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Failed to open JSON file");
+        return -1;
+    }
 
+    // Determine the file size
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    // Handle empty files
+    if (length == 0) {
+        fprintf(stderr, "Error: JSON file is empty\n");
+        fclose(file);
+        return -1;
+    }
+
+    // Allocate memory for the file content
+    char *data = (char *)malloc(length + 1);
+    if (data == NULL) {
+        perror("Failed to allocate memory");
+        fclose(file);
+        return -1;
+    }
+
+    // Read the file content
+    size_t bytes_read = fread(data, 1, length, file);
+    if (bytes_read != length) {
+        perror("Failed to read JSON file");
+        free(data);
+        fclose(file);
+        return -1;
+    }
+    data[length] = '\0'; // Null-terminate the string
+    fclose(file);
+
+    // Parse the JSON data
+    cJSON *json = cJSON_Parse(data);
+    free(data); // Free the file content buffer
+    if (json == NULL) {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL) {
+            fprintf(stderr, "Error parsing JSON: %s\n", error_ptr);
+        }
+        return -1;
+    }
+
+    // Retrieve the value associated with the key
+    cJSON *json_value = cJSON_GetObjectItemCaseSensitive(json, key);
+    if (json_value == NULL || !cJSON_IsNumber(json_value)) {
+        fprintf(stderr, "Key '%s' not found or is not a number\n", key);
+        cJSON_Delete(json);
+        return -1;
+    }
+
+    // Store the retrieved value
+    *value = json_value->valueint; 
+    cJSON_Delete(json);
+    return 0;
+}

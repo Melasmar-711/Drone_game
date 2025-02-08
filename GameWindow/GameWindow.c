@@ -5,10 +5,18 @@
 
 
 
+int MAX_X=100 ;
+int MAX_Y=30 ;
+
 
 int main() {
     
     char*   log_file = "../Logs/GameWindow.log";
+
+    get_int_from_json("../Game_Config.json","MAX_X",&MAX_X);
+    get_int_from_json("../Game_Config.json","MAX_Y",&MAX_Y);
+
+
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);
@@ -23,6 +31,8 @@ start:
 
     if(reset){
 
+
+
         just_got_reset=true;
 
         clear();
@@ -30,6 +40,9 @@ start:
         reset=false;
         log_message(log_file, INFO, "GameWindow reset.");
         usleep(10000);
+
+        get_int_from_json("../Game_Config.json","MAX_X",&MAX_X);
+        get_int_from_json("../Game_Config.json","MAX_Y",&MAX_Y);
 
     }
 
@@ -59,7 +72,7 @@ start:
 
     ServerState prev_state={0};
     init_ncurses();
-    draw_borders();
+    draw_borders(MAX_X, MAX_Y);
 
     refresh();
 

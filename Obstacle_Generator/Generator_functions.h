@@ -20,11 +20,7 @@
 
 
 
-#define MAX_OBSTACLES 10
-#define MAX_TARGETS 10
-#define MAX_X 100
-#define MAX_Y 30
-#define FRAME_RATE 30
+
 
 
 // Data Structures

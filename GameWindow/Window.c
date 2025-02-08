@@ -17,7 +17,7 @@ void init_ncurses() {
 }
 
 
-void draw_borders() {
+void draw_borders(int MAX_X, int MAX_Y) {
 
     // Draw the static simulation boundary
     attron(COLOR_PAIR(3));

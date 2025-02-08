@@ -83,6 +83,13 @@ start:
 
     while (1) {
 
+
+    int fps_value;
+
+    // Retrieve the FPS value
+    get_int_from_json("../Game_Config.json", "FPS", &fps_value);
+
+
         bool new_obstacle_arrived = false;
 
 
@@ -91,6 +98,7 @@ start:
         if (is_paused) {
 
             usleep(100000); // Sleep while paused to reduce CPU usage
+            
             log_message(log_file, INFO, "BlackBoardServer paused.");
             
             continue;
@@ -101,7 +109,7 @@ start:
 
 
         long current_time = current_time_in_ms();
-        if (current_time - last_frame_time < 1000 / FRAME_RATE) {
+        if (current_time - last_frame_time < 1000 / fps_value) {
             //printf("sleeping for sometime\n");
             fflush(stdout);
             usleep(1000); // Sleep for 1ms if we're ahead of the frame rate

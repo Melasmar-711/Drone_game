@@ -13,6 +13,14 @@ int main() {
 
     log_message(log_file, INFO, "ObstacleGenerator started successfully.");
 
+    int fps_value;
+    int MAX_X;
+    int MAX_Y;
+
+    get_int_from_json("../Game_Config.json","MAX_X",&MAX_X);
+    get_int_from_json("../Game_Config.json","MAX_Y",&MAX_Y);
+    get_int_from_json("../Game_Config.json","FPS",&fps_value);
+
 start:
 
     if(reset){
@@ -20,6 +28,8 @@ start:
         log_message(log_file, INFO, "ObstacleGenerator reset.");
         fifo_id++;
         reset=false;
+        get_int_from_json("../Game_Config.json","MAX_X",&MAX_X);
+        get_int_from_json("../Game_Config.json","MAX_Y",&MAX_Y);
         usleep(10000);
 
     }
@@ -47,8 +57,8 @@ start:
 
         // Generate random obstacles within specified boundaries
         for (int i = 0; i < num_obstacles; i++) {
-            obstacles[i][0] = rand() % (MAX_X - 2) + 1;  // X coordinate
-            obstacles[i][1] = rand() % (MAX_Y - 2) + 1;  // Y coordinate
+            obstacles[i][0] = (rand() % ((MAX_X - 1) / 2)) * 2 + 1;  // X coordinate
+            obstacles[i][1] = (rand() % ((MAX_Y - 1) / 2)) * 2 + 1 ;// Y coordinate
         }
 
 

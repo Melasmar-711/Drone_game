@@ -14,5 +14,5 @@ extern bool just_got_reset;
 
 // Function prototypes
 void init_ncurses();
-void draw_borders();
-void draw_simulation(ServerState *prev_state, ServerState *current_state,int *flags);
+void draw_borders(int MAX_X, int MAX_Y);
+void draw_simulation(ServerState *prev_state, ServerState *current_state,int *flags);   
