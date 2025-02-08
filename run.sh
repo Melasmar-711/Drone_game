@@ -7,7 +7,28 @@ if [ -e "blackboard_pipe" ]; then
 fi
 
 # Define the log directory (update the path if necessary)
-LOG_DIR="logs"  # Assuming your log files are in a directory called "logs"
+LOG_DIR="Logs"  # Assuming your log files are in a directory called "logs"
+
+# Create the log directory if it doesn't exist
+mkdir -p "$LOG_DIR"
+
+# Define the log files
+LOG_FILES=(
+    "BlackBoardServer.log"
+    "DroneDynamicsManager.log"
+    "GameWindow.log"
+    "KeyboardManager.log"
+    "ObstacleGenerator.log"
+    "TargetsGenerator.log"
+)
+
+# Create log files if they don't exist
+for log_file in "${LOG_FILES[@]}"; do
+    if [ ! -e "$LOG_DIR/$log_file" ]; then
+        echo "Creating $LOG_DIR/$log_file..."
+        touch "$LOG_DIR/$log_file"
+    fi
+done
 
 # Clean up log files (delete all .log files in the logs directory)
 if [ -d "$LOG_DIR" ]; then
@@ -42,7 +63,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
 # Start the processes (you can specify paths for log files or they will be generated later)
 gnome-terminal -- ./BlackBoardServer/BlackBoardServer &
 gnome-terminal -- ./DroneDynamicsManager/DroneDynamicsManager &
@@ -53,4 +73,3 @@ gnome-terminal -- ./Obstacle_Generator/Obstacle_Generator &
 
 sleep 2
 gnome-terminal -- ./WatchDog/WatchDog &
-

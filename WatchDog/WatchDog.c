@@ -128,7 +128,7 @@ int main() {
 
     char* log_file = "../Logs/KeyBoard.log";
     char* log_file1 = "../Logs/BlackBoardServer.log";
-    char* log_file2 = "../Logs/GameWindow.log"; 
+    char* log_file2 ="../Logs/GameWindow.log";
     char* log_file3 = "../Logs/DroneDynamicsManager.log";
     char* log_file4 = "../Logs/TargetsGenerator.log";
     char* log_file5 = "../Logs/ObstacleGenerator.log";

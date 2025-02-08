@@ -8,7 +8,7 @@
 
 int main() {
     
-    char*   log_file = "../Logs/GameWindow.log";  
+    char*   log_file = "../Logs/GameWindow.log";
     signal(SIGUSR1, handle_pause_signal);
     signal(SIGUSR2, handle_reset_signal);
     signal(SIGINT, handle_stop_signal);

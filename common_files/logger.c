@@ -31,6 +31,52 @@ void log_message(const char *log_file, LogLevel level, const char *message) {
 
     // Format the log message
     fprintf(log_fp, "[%s] [%s] %s\n", timestamp, level_str, message);
+    fclose(log_fp);
 
-    fclose(log_fp);  // Close the file
+    retainLastNLines(log_file, MAX_LINES);  // Retain only the last 5 lines
+}
+
+
+
+
+
+void retainLastNLines(const char *filename, int n) {
+    char buffer[MAX_LINES][MAX_LINE_LENGTH];  // Buffer to store lines
+    int lineCount = 0;
+
+    // Open the file for reading
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    // Read all lines into the buffer
+    while (fgets(buffer[lineCount], MAX_LINE_LENGTH, file) != NULL) {
+        lineCount++;
+        if (lineCount >= MAX_LINES) {
+            // Shift lines up to make room for new lines
+            for (int i = 1; i < MAX_LINES; i++) {
+                strcpy(buffer[i - 1], buffer[i]);
+            }
+            lineCount--;
+        }
+    }
+    fclose(file);
+
+    // Open the file for writing (truncates the file)
+    file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    // Write the last N lines to the file
+    int startLine = (lineCount > n) ? (lineCount - n) : 0;
+    for (int i = startLine; i < lineCount; i++) {
+        fprintf(file, "%s", buffer[i]);
+    }
+
+    fclose(file);
+    //printf("Retained the last %d lines of the log file.\n", n);
 }
