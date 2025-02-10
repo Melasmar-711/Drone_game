@@ -19,6 +19,10 @@ int main() {
     get_int_from_json("../Game_Config.json", "MAX_Y", &MAX_Y);
     get_int_from_json("../Game_Config.json", "FPS", &fps_value);
 
+    int n_targets;
+    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);
+
+
 start:
     if (reset) {
         log_message(log_file, INFO, "TargetsGenerator reset.");
@@ -27,6 +31,8 @@ start:
         get_int_from_json("../Game_Config.json", "MAX_X", &MAX_X);
         get_int_from_json("../Game_Config.json", "MAX_Y", &MAX_Y);
         get_int_from_json("../Game_Config.json", "FPS", &fps_value);
+        get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);
+
         usleep(10000);
     }
 
@@ -36,8 +42,8 @@ start:
     // Create FIFO
     int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d", fifo_id, O_WRONLY);
 
-    int num_targets = MAX_TARGETS;
-    int targets[MAX_TARGETS][2];
+    int num_targets = n_targets;
+    int targets[n_targets][2];
 
     // Generate random targets within specified boundaries, ensuring even positions
     for (int i = 0; i < num_targets; i++) {

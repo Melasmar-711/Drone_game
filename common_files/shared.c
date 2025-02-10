@@ -36,7 +36,7 @@ void unlink_fifo(const char *template, int identifier) {
     }
 }
 
-ServerState initialize_server_state() {
+ServerState initialize_server_state(int n_obstacles, int n_targets) {
     return (ServerState){
         .drone_x = 10,
         .drone_y = 7,
@@ -46,10 +46,12 @@ ServerState initialize_server_state() {
         .resultant_force_y = 0,
         .velocity_x = 0,
         .velocity_y = 0,
-        .num_obstacles = MAX_OBSTACLES,
-        .num_targets = MAX_TARGETS,
+        .num_obstacles = n_obstacles,
+        .num_targets = n_targets,
     };
 }
+
+
 
 
 
