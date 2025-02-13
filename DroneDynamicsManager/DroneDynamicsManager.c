@@ -9,6 +9,12 @@ int fps_value;
 
 
 int main() {
+    int n_obstacles;
+    int n_targets;
+
+    // Retrieve the number of obstacles and targets from the JSON configuration file
+    get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
+    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);  // initialize a Server state
 
 
     char *log_file = "../Logs/DroneDynamicsManager.log";
@@ -35,6 +41,8 @@ start:
         get_int_from_json("../Game_Config.json", "MAX_X", &MAX_X);
         get_int_from_json("../Game_Config.json", "MAX_Y", &MAX_Y);
         get_int_from_json("../Game_Config.json", "FPS", &fps_value);
+        get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
+        get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);  // initialize a Server state
         log_message(log_file, INFO, "DroneDynamicsManager reset.");
         fifo_id++;
         reset=false;
@@ -51,7 +59,6 @@ start:
 
 
 
-    
     Vector_2D velocity = {0, 0};
     Vector_2D acceleration = {0, 0};
 
@@ -60,13 +67,7 @@ start:
 
   
 
-    int n_obstacles;
-    int n_targets;
-
-    // Retrieve the number of obstacles and targets from the JSON configuration file
-    get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
-    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);  // initialize a Server state
-
+  
     ServerState state = initialize_server_state(n_obstacles, n_targets);
     state.drone_x = 0;  
     state.drone_y = 0;
@@ -93,8 +94,7 @@ start:
 
 
 
-    get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
-    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);  // initialize a Server state
+  
     prev_state.num_obstacles = n_obstacles;
     prev_state.num_targets = n_targets;
     state.num_obstacles = n_obstacles;
@@ -178,7 +178,7 @@ start:
         log_message(log_file, INFO, "DroneDynamicsManager running.");
 
         if (reset){
-
+        usleep(1000000);
             close(fd_Dynamics_to_server);
             close(fd_server_to_Dynamics);
             goto start;

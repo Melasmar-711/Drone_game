@@ -71,5 +71,5 @@ gnome-terminal -- ./KeyboardManager/KeyboardManager &
 gnome-terminal -- ./Targets_Generator/Targets_Generator &
 gnome-terminal -- ./Obstacle_Generator/Obstacle_Generator &
 
-#sleep 2
-#gnome-terminal -- ./WatchDog/WatchDog &
+sleep 2
+gnome-terminal -- ./WatchDog/WatchDog &

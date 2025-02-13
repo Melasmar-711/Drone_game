@@ -84,6 +84,7 @@ start:
         for(int i=0;i<20;i++){
 
             if(reset){
+                usleep(1000000);
                 close(fd_obstacle_generator_to_server);
                 goto start;
             } 

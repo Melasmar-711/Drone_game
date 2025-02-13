@@ -1,6 +1,14 @@
 #include "Generator_functions.h"
 #include "sig_handle.h"
 #include "logger.h"
+#include <fcntl.h>      // For FIFO flags
+#include <stdio.h>      // For printf, perror
+#include <stdlib.h>     // For rand, exit
+#include <unistd.h>     // For close, usleep
+#include <signal.h>     // For signal handling
+#include <time.h>       // For srand, time
+
+#define FIFO_PATH "/tmp/target_generator_to_server_%d"
 
 int main() {
     char* log_file = "../Logs/TargetsGenerator.log";
@@ -8,70 +16,70 @@ int main() {
     signal(SIGINT, handle_stop_signal);
 
     log_message(log_file, INFO, "TargetsGenerator started successfully.");
+    printf("Starting TargetsGenerator...\n");
 
     int fifo_id = 0;
+    int fps_value, MAX_X, MAX_Y, n_targets;
+    char fifo_name[50];
 
-    int fps_value;
-    int MAX_X;
-    int MAX_Y;
-
-    get_int_from_json("../Game_Config.json", "MAX_X", &MAX_X);
-    get_int_from_json("../Game_Config.json", "MAX_Y", &MAX_Y);
-    get_int_from_json("../Game_Config.json", "FPS", &fps_value);
-
-    int n_targets;
-    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);
-
-
-start:
-    if (reset) {
-        log_message(log_file, INFO, "TargetsGenerator reset.");
-        fifo_id++;
-        reset = false;
+    while (!stop) {
+        // Load configuration values
         get_int_from_json("../Game_Config.json", "MAX_X", &MAX_X);
         get_int_from_json("../Game_Config.json", "MAX_Y", &MAX_Y);
         get_int_from_json("../Game_Config.json", "FPS", &fps_value);
         get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);
 
-        usleep(10000);
-    }
+        printf("Configuration: MAX_X=%d, MAX_Y=%d, FPS=%d, num_of_targets=%d\n", MAX_X, MAX_Y, fps_value, n_targets);
 
-    // Seed random number generator
-    srand(time(NULL) + 1);
+        // Seed random number generator (keeping your logic intact)
+        srand(time(NULL) + 1);
 
-    // Create FIFO
-    int fd_target_generator_to_server = create_and_open_fifo("/tmp/target_generator_to_server_%d", fifo_id, O_WRONLY);
+        // Generate FIFO name and open it
+        int fd_target_generator_to_server = create_and_open_fifo(FIFO_PATH, fifo_id, O_WRONLY);
+        if (fd_target_generator_to_server == -1) {
+            perror("Error opening FIFO");
+            exit(EXIT_FAILURE);
+        }
 
-    int num_targets = n_targets;
-    int targets[n_targets][2];
+        
+            int targets[n_targets][2];
 
-    // Generate random targets within specified boundaries, ensuring even positions
-    for (int i = 0; i < num_targets; i++) {
-        targets[i][0] = (rand() % ((MAX_X - 2) / 2)) * 2 + 2;  // X coordinate (even)
-        targets[i][1] = (rand() % ((MAX_Y - 2) / 2)) * 2 + 2;  // Y coordinate (even)
-    }
+            // Generate targets using your original random value logic
+            for (int i = 0; i < n_targets; i++) {
+                targets[i][0] = (rand() % ((MAX_X - 2) / 2)) * 2 + 2;  // X coordinate (even)
+                targets[i][1] = (rand() % ((MAX_Y - 2) / 2)) * 2 + 2;  // Y coordinate (even)
+            }
 
-    // Send the targets array to the server
-    ssize_t bytes_written = write(fd_target_generator_to_server, targets, sizeof(targets));
-    if (bytes_written == -1) {
-        perror("Error writing to FIFO");
+            // Send targets to the server
+            ssize_t bytes_written = write(fd_target_generator_to_server, targets, sizeof(targets));
+            if (bytes_written == -1) {
+                perror("Error writing to FIFO");
+                log_message(log_file, ERROR, "Failed to write to FIFO.");
+                break;
+            }
+
+            printf("Generated and sent %d targets.\n", n_targets);
+            log_message(log_file, INFO, "TargetsGenerator sent targets.");
+
+
+        while (!reset && !stop) {  
+
+                        usleep(1000000 / fps_value);
+                        log_message(log_file, INFO, "TargetsGenerator running.");
+
+  
+        }
+
         close(fd_target_generator_to_server);
-        return 1;
-    }
 
-    printf("Generated and sent %d targets.\n", num_targets);
-
-    while (!reset & !stop) {
-        log_message(log_file, INFO, "TargetsGenerator running.");
-        usleep(1000000 / fps_value);
-    }
-
-    if (reset) {
-        close(fd_target_generator_to_server);
-        goto start;
+        if (reset) {
+            log_message(log_file, INFO, "TargetsGenerator resetting...");
+            reset = false;
+            fifo_id++;
+            usleep(100000);
+        }
     }
 
     log_message(log_file, INFO, "TargetsGenerator shutting down.");
-    close(fd_target_generator_to_server);
     return 0;
 }

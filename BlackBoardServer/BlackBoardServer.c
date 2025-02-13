@@ -10,6 +10,10 @@ int main() {
     
 
 
+//get this pocees pid
+    pid_t pid = getpid();
+
+
     char* log_file = "../Logs/BlackBoardServer.log";
 
     log_message(log_file, INFO, "BlackBoardServer started successfully.");
@@ -23,7 +27,23 @@ int main() {
     int fifo_id=0;
     int fd_Keyboard_to_server = create_and_open_fifo("/tmp/keyboardManager_to_server_%d",0, O_RDONLY|O_NONBLOCK);
 
+
+    int n_obstacles;
+    int n_targets;
+
+    // Retrieve the number of obstacles and targets from the JSON configuration file
+    get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
+    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets); 
     
+
+
+
+    int fps_value;
+
+    // Retrieve the FPS value
+    get_int_from_json("../Game_Config.json", "FPS", &fps_value);
+
+
 start:
 
     if (reset){
@@ -32,8 +52,13 @@ start:
 
         fifo_id++;
         reset=false;
+            // Retrieve the number of obstacles and targets from the JSON configuration file
+        get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
+        get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);
+
         
-        usleep(10000);
+        usleep(1000000);
+
 
     }
 
@@ -71,12 +96,7 @@ start:
 
 
 
-    int n_obstacles;
-    int n_targets;
 
-    // Retrieve the number of obstacles and targets from the JSON configuration file
-    get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
-    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets); 
 
 
     ServerState state = initialize_server_state( n_obstacles,n_targets);   
@@ -89,22 +109,17 @@ start:
 
     while (1) {
 
+        //print the process pid
+        //printf("BlackBoardServer pid: %d\n", pid);
 
 
-    // Retrieve the number of obstacles and targets from the JSON configuration file
-    get_int_from_json("../Game_Config.json", "num_of_obstacles", &n_obstacles);
-    get_int_from_json("../Game_Config.json", "num_of_targets", &n_targets);
+
 
     state.num_obstacles = n_obstacles;
     state.num_targets = n_targets;
     
 
 
-
-    int fps_value;
-
-    // Retrieve the FPS value
-    get_int_from_json("../Game_Config.json", "FPS", &fps_value);
 
 
         bool new_obstacle_arrived = false;
@@ -254,7 +269,7 @@ start:
     
     if (reset){
     
-
+        usleep(1000000);
         close(fd_Dynamics_to_server);
         close(fd_server_to_Dynamics);
         close(fd_server_to_GameWindow);
