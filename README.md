@@ -33,9 +33,97 @@ To build the project, you need to have CMake installed. Follow these steps:
 1. Navigate to the root directory of the project.
 2. Run the following commands:
 
-```sh
-mkdir -p build
-cd build
-cmake ..
-make
+```bash
+./run.sh
+```
+
+
+
+
+
+## Components
+### **1st module** in subscriber mode
+- **BlackBoardServer**: Manages the blackboard server for inter-process communication.
+- **DroneDynamicsManager**: Handles the dynamics and physics of the drones.
+- **GameWindow**: Provides the game window interface using the ncurses library.
+- **KeyboardManager**: Manages keyboard inputs.
+- **Obstacle_Generator**: sends  obstacles in to the server 
+- **Targets_Generator**: sends  targets in to the server 
+- **WatchDog**: Monitors the system to ensure all components are running correctly.
+
+
+
+## Test Runs
+Here are some videos demonstrating the system in action:
+- [Basic Movement Demo](#)
+- [![Test reset and changing parameters](https://img.youtube.com/vi/iVQi3v4p6Ro/0.jpg)](https://youtu.be/iVQi3v4p6Ro)
+
+- [Full System Test](#)
+    ![Full System Test](https://img.youtube.com/vi/PLACEHOLDER/0.jpg)
+
+## Project Structure
+
+example of project structure
+```
+Drone_game_part2/ 
+
+|── CMakeLists.txt
+├── BlackBoardServer/
+│   ├── server.h
+│   ├── server.c
+│   ├── BlackBoardServer.c
+|   ├──CMakeLists.txt
+│   
+|
+|
+|
+
+
+each module has the same 
+```
+
+## Communication Diagram
+
+Below is a text-based diagram illustrating the communication between different nodes in the drone navigation system:
+
+```
+ 
++--------------------------------------------------------+  
+|                                                        |
+|                                                        |
+|                                                        |
+|            +----------------------+                    |
+|            |                      |                    |
+|            |WatchDog Monitoring   |                    |
+|            |                      |                    |
+|            +----------------------+                    |
+|                                                        |
+|                                                        |
+|   +---------+---------+       +---------+---------+    |
+|   |                   |       |                   |    |
+|   |Obstacle_Generator |       |Targets_Generator  |    |
+|   |                   |       |                   |    |
+|   +---------+---------+       +---------+---------+    |
+|           FI|FO                       FI|FO            |
+|             v                           v              |
+|        =---------------------------------------+       |
+|        |                                       |       +------+---------------------|
+|        |                                       |    FIFO      |                     |
+|        |                                       |------------> |    GameWindow       |
+|        |           BlackBoardServer            |              |                     |
+|        |                                       |       +------+---------------------+
+|        +-------- _-----------------------------+       |
+|          FI|FO  / \                    |               |
+|            v   FI|FO                 FI|FO             |
+|   +---------------------+     +-------------------+    |
+|   |                     |     |                   |    |
+|   |DroneDynamicsManager |     | Keyboard          |    |
+|   |                     |     |                   |    |
+|   +---------+-----------+     +---------+---------+    |
+|                                                        |
++--------------------------------------------------------+
+
+```
+
+This diagram shows the flow of data from the generators to the publishers, then to the BlackBoardServer, and finally to the various managers and interfaces.
 
